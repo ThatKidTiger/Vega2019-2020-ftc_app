@@ -31,6 +31,8 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.stormbots.MiniPID;
@@ -40,24 +42,32 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-
 import static android.os.SystemClock.sleep;
+import static java.lang.Math.round;
 
-@TeleOp(name = "VegaOpMode", group = "VegaBot")
-public class VegaOpMode extends OpMode {
+@TeleOp(name="VegaOpMode", group="VegaBot")
+public class VegaOpMode extends OpMode
+{
+    // Declare OpMode members.
+    private ElapsedTime runtime = new ElapsedTime();
     VegaHardware robot = new VegaHardware();
+
     Orientation lastAngles = new Orientation();
     double relativeAngle, globalAngle;
+
     //controls driver 2 strafe toggle
     boolean twoStrafe = false;
     boolean xChange = false;
     boolean open = true;
     boolean aChange = false;
     boolean foundation = false;
-    boolean bChange = false;
-    MiniPID P = new MiniPID(0.032, 0, 0);
-    // Declare OpMode members.
-    private ElapsedTime runtime = new ElapsedTime();
+    boolean yChange = false;
+    boolean downChange = false;
+    boolean upChange = false;
+    int liftTarget = 0;
+
+    MiniPID P = new MiniPID(0.032, 0 , 0);
+    MiniPID liftPID = new MiniPID(0.001, 0, 0);
 
     @Override
     public void init() {
@@ -65,6 +75,11 @@ public class VegaOpMode extends OpMode {
         robot.init(hardwareMap);
         robot.imu.readCalibrationData();
         telemetry.addData("Status", "Initialized");
+
+        robot.lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.lift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
     }
 
     @Override
@@ -74,6 +89,7 @@ public class VegaOpMode extends OpMode {
 
     @Override
     public void loop() {
+        runtime.reset();
 
         double leftPower;
         double rightPower;
@@ -83,8 +99,6 @@ public class VegaOpMode extends OpMode {
 
         double strafe = gamepad1.right_stick_x;
         double rightY = -gamepad1.right_stick_y;
-
-        double tangent = rightY / strafe;
 
         leftPower = Range.clip(drive + turn, -1.0, 1.0);
         rightPower = Range.clip(drive - turn, -1.0, 1.0);
@@ -104,13 +118,22 @@ public class VegaOpMode extends OpMode {
             robot.frontLeft.setPower(strafeTwo);
             robot.frontRight.setPower(-strafeTwo);
         } else if (foundation) {
-            //player one slow drive foundation mode
-            leftPower *= 0.35;
-            rightPower *= 0.35;
-            robot.backLeft.setPower(leftPower);
-            robot.backRight.setPower(rightPower);
-            robot.frontLeft.setPower(leftPower);
-            robot.frontRight.setPower(rightPower);
+            //player one slow drive foundation
+            if(gamepad1.right_stick_x < 0.1) {
+                leftPower *= 0.35;
+                rightPower *= 0.35;
+                robot.backLeft.setPower(leftPower);
+                robot.backRight.setPower(rightPower);
+                robot.frontLeft.setPower(leftPower);
+                robot.frontRight.setPower(rightPower);
+            }
+            else {
+                double strafeSlow = gamepad1.right_stick_x * 0.4;
+                robot.backLeft.setPower(-strafeSlow);
+                robot.backRight.setPower(strafeSlow);
+                robot.frontLeft.setPower(strafeSlow);
+                robot.frontRight.setPower(-strafeSlow);
+            }
         } else if (Math.abs(strafe) < 0.1) {
             //arcade drive
             robot.backLeft.setPower(leftPower);
@@ -141,42 +164,80 @@ public class VegaOpMode extends OpMode {
             }
         }
 
-        robot.horizontalArm.setPower(0.8 * (gamepad2.left_trigger - gamepad2.right_trigger));
+        if(gamepad2.right_trigger > 0) {
+            liftTarget -= Math.round(gamepad2.right_trigger * 7);
+        }
+        else if(gamepad2.left_trigger > 0) {
+            liftTarget += Math.round(gamepad2.right_trigger * 7);
+        }
 
-        robot.latch.setPower(0.6 * (gamepad1.right_trigger - gamepad1.left_trigger));
+        if(gamepad2.dpad_up && !upChange) {
+            upChange = true;
+            liftTarget -= 582;
+        }
+        else if(!gamepad2.dpad_up) {
+            upChange = false;
+        }
 
-        if (gamepad2.a && !aChange) {
+        if(gamepad2.dpad_down && !downChange) {
+            downChange = true;
+            liftTarget += 582;
+        }
+        else if(!gamepad2.dpad_down) {
+            downChange = false;
+        }
+
+        if(gamepad2.right_bumper) {
+            robot.gripper.setPower(-0.30);
+        }
+        else if(gamepad2.left_bumper) {
+            robot.gripper.setPower(0.30);
+        }
+        else {
+            robot.gripper.setPower(0);
+        }
+
+        robot.lift.setTargetPosition(liftTarget);
+        /*double liftpower = liftPID.getOutput(robot.lift.getCurrentPosition(), liftTarget);
+        robot.lift.setPower(liftpower);*/
+
+        robot.lift.setPower(gamepad2.right_trigger - gamepad2.left_trigger);
+
+        robot.latch.setPower(0.3 * (gamepad1.right_trigger - gamepad1.left_trigger));
+
+        if(gamepad2.a && !aChange) {
             aChange = true;
             open = !open;
-        } else if (!gamepad2.a) {
+        }
+        else if(!gamepad2.a) {
             aChange = false;
         }
 
-        if (open) {
-            robot.gripper.setPosition(180);
-        } else {
-            robot.gripper.setPosition(0);
+        if(!open) {
+            robot.gripper.setPower(-0.19);
+            telemetry.addLine("Closed");
+        }
+        else {
+            telemetry.addLine("Open");
         }
 
-        if (gamepad1.b && !bChange) {
-            bChange = true;
+        if (gamepad1.y && !yChange) {
+            yChange = true;
             foundation = !foundation;
-        } else if (!gamepad2.b) {
-            bChange = false;
+        }
+        else if(!gamepad2.y) {
+            yChange = false;
         }
 
-        if (gamepad2.dpad_up) {
-            robot.liftMech.setPower(.5);
-        } else if (gamepad2.dpad_down) {
-            robot.liftMech.setPower(-.5);
-        } else robot.liftMech.setPower(0);
-
-        telemetry.addData("IMU Calib", robot.imu.getCalibrationStatus().toString());
-        telemetry.addData("Distance(cm): ", "%f", robot.distance.getDistance(DistanceUnit.CM));
-        telemetry.addData("Side Distance: ", robot.sideDistance.getDistance(DistanceUnit.CM));
-        telemetry.addData("Angle: ", getOrientation());
-        telemetry.addData("RawDistance:", robot.blockDist.getDistance(DistanceUnit.CM));
-        telemetry.addData("R,G,B: ", "%d %d %d  ", robot.colSen.red(), robot.colSen.green(), robot.colSen.blue());
+        //telemetry.addData("Time: ", runtime.milliseconds());
+        //telemetry.addData("IMU Calib", robot.imu.getCalibrationStatus().toString());
+        //telemetry.addData("Distance(cm): ", "%f", robot.distance.getDistance(DistanceUnit.CM));
+        //telemetry.addData("Angle: ", getOrientation());
+        telemetry.addData("Left R,G,B,A: ", "%d, %d, %d, %d", robot.colLeft.red(), robot.colLeft.green(), robot.colLeft.blue(), robot.colLeft.alpha());
+        telemetry.addData("Right R,G,B,A: ", "%d, %d, %d, %d", robot.colRight.red(), robot.colRight.green(), robot.colRight.blue(), robot.colRight.alpha());
+        //telemetry.addData("Latch: ", "%d %d", robot.latch.getCurrentPosition(), robot.latch.getTargetPosition());
+        //telemetry.addData("Lift: ","%d, %d" , robot.lift.getCurrentPosition(), robot.lift.getTargetPosition());
+        //telemetry.addData("Lift Power: ", gamepad2.right_trigger - gamepad2.left_trigger);
     }
 
     @Override
@@ -207,63 +268,7 @@ public class VegaOpMode extends OpMode {
         return deltaAngle;
     }
 
-    public double getAngle() {
-        //retrieve current imu orientation information
-        Orientation angles = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-
-        //calculate change from the last recorded position
-        double deltaAngle = angles.firstAngle - lastAngles.firstAngle;
-
-        //because IMU returns rotation on a set of axes -180 to 180 adjust angle change to be the most logical direction
-        if (deltaAngle < -180)
-            deltaAngle += 360;
-        else if (deltaAngle > 180)
-            deltaAngle -= 360;
-
-        relativeAngle += deltaAngle;
-
-        lastAngles = angles;
-
-        return relativeAngle;
-    }
-
-    public void rotate(double degrees, double power) {
-        double leftPower, rightPower, temppower;
-        resetAngle();
-        P.reset();
-        P.setP(Math.abs(power) / 20);
-        sleep(500);
-
-        while (Math.abs(degrees - getOrientation()) > 1) {
-            temppower = P.getOutput(getOrientation(), degrees);
-
-            telemetry.addData("temppower: ", temppower);
-
-            if (Math.abs(temppower) < 0.15) {
-                temppower = Math.signum(temppower) * (0.15);
-            }
-
-            leftPower = -temppower;
-            rightPower = temppower;
-
-            double max = Math.max(Math.abs(leftPower), Math.abs(rightPower));
-
-            if (max > power) {
-                leftPower *= (power / max);
-                rightPower *= (power / max);
-            }
-
-            robot.frontRight.setPower(rightPower);
-            robot.frontLeft.setPower(leftPower);
-            robot.backRight.setPower(rightPower);
-            robot.backLeft.setPower(leftPower);
-            telemetry.addData("Motor Powers: ", "%f %f", leftPower, rightPower);
-            telemetry.addData("difference: ", Math.abs(degrees - getOrientation()));
-            telemetry.update();
-        }
-        robot.frontRight.setPower(0);
-        robot.frontLeft.setPower(0);
-        robot.backRight.setPower(0);
-        robot.backLeft.setPower(0);
+    private double inchestoTicks(double TICKS_PER_REV, double DIAM, double inches) {
+        return (inches / DIAM * Math.PI) * TICKS_PER_REV;
     }
 }
