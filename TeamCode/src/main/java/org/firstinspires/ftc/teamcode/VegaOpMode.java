@@ -32,6 +32,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.stormbots.MiniPID;
@@ -39,6 +40,7 @@ import com.stormbots.MiniPID;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 @TeleOp(name="VegaOpMode", group="VegaBot")
@@ -62,8 +64,7 @@ public class VegaOpMode extends OpMode
     boolean upChange = false;
     int liftTarget = 0;
 
-    MiniPID P = new MiniPID(0.032, 0 , 0);
-    MiniPID liftPID = new MiniPID(0.001, 0, 0);
+    MiniPID liftPID = new MiniPID(0.002, 0.00015, 0.01);
 
     @Override
     public void init() {
@@ -75,6 +76,7 @@ public class VegaOpMode extends OpMode
         robot.lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         robot.lift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        robot.lift.setDirection(DcMotor.Direction.REVERSE);
 
     }
 
@@ -194,10 +196,18 @@ public class VegaOpMode extends OpMode
         }
 
         robot.lift.setTargetPosition(liftTarget);
-        /*double liftpower = liftPID.getOutput(robot.lift.getCurrentPosition(), liftTarget);
-        robot.lift.setPower(liftpower);*/
+        if(Math.abs(robot.lift.getTargetPosition() - robot.lift.getCurrentPosition()) > 5) {
+            double liftpower = liftPID.getOutput(robot.lift.getCurrentPosition(), liftTarget);
+            if(Math.abs(liftpower) < 0.25) {
+                liftpower *= 0.25/Math.abs(liftpower);
+            }
+            robot.lift.setPower(liftpower);
+        }
+        else {
+            robot.lift.setPower(0);
+        }
 
-        robot.lift.setPower(gamepad2.right_trigger - gamepad2.left_trigger);
+        //robot.lift.setPower(gamepad2.right_trigger - gamepad2.left_trigger);
 
         robot.latch.setPower(0.3 * (gamepad1.right_trigger - gamepad1.left_trigger));
 
@@ -209,12 +219,19 @@ public class VegaOpMode extends OpMode
             aChange = false;
         }
 
-        if(!open) {
-            robot.gripper.setPower(-0.19);
+        /*if(!open) {
+            robot.gripper.setPower(-0.1);
             telemetry.addLine("Closed");
         }
         else {
             telemetry.addLine("Open");
+        }*/
+
+        if(open) {
+            robot.gripper.setTargetPosition(-280);
+        }
+        else {
+            robot.gripper.setTargetPosition(0);
         }
 
         if (gamepad1.y && !yChange) {
@@ -225,15 +242,16 @@ public class VegaOpMode extends OpMode
             yChange = false;
         }
 
-        //telemetry.addData("Time: ", runtime.milliseconds());
-        //telemetry.addData("IMU Calib", robot.imu.getCalibrationStatus().toString());
-        //telemetry.addData("Distance(cm): ", "%f", robot.distance.getDistance(DistanceUnit.CM));
-        //telemetry.addData("Angle: ", getOrientation());
+        telemetry.addData("Time: ", runtime.milliseconds());
+        telemetry.addData("IMU Calib", robot.imu.getCalibrationStatus().toString());
+        telemetry.addData("Distance(cm): ", "%f", robot.distance.getDistance(DistanceUnit.CM));
+        telemetry.addData("Top Distance(cm): ", "%f", robot.topdistance.getDistance(DistanceUnit.CM));
+        telemetry.addData("Angle: ", getOrientation());
         telemetry.addData("Left R,G,B,A: ", "%d, %d, %d, %d", robot.colLeft.red(), robot.colLeft.green(), robot.colLeft.blue(), robot.colLeft.alpha());
         telemetry.addData("Right R,G,B,A: ", "%d, %d, %d, %d", robot.colRight.red(), robot.colRight.green(), robot.colRight.blue(), robot.colRight.alpha());
-        //telemetry.addData("Latch: ", "%d %d", robot.latch.getCurrentPosition(), robot.latch.getTargetPosition());
-        //telemetry.addData("Lift: ","%d, %d" , robot.lift.getCurrentPosition(), robot.lift.getTargetPosition());
-        //telemetry.addData("Lift Power: ", gamepad2.right_trigger - gamepad2.left_trigger);
+        telemetry.addData("Latch: ", "%d %d", robot.latch.getCurrentPosition(), robot.latch.getTargetPosition());
+        telemetry.addData("Lift: ","%d, %d" , robot.lift.getCurrentPosition(), robot.lift.getTargetPosition());
+        telemetry.addData("Lift Power: ", gamepad2.right_trigger - gamepad2.left_trigger);
     }
 
     @Override

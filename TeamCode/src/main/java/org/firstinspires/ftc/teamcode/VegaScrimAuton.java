@@ -259,6 +259,61 @@ public class VegaScrimAuton extends LinearOpMode {
         robot.backLeft.setPower(0);
     }
 
+    private void moveToTop(double power, double dist) {
+        //Accurate once it moves within 30 centimeters of the object it is approaching
+        double leftPower, rightPower, temppower;
+        //reset reference angle and PID controllers
+        resetAngle();
+        runtime.reset();
+        rotPID.reset();
+        PD.reset();
+        //ramps down to zero starting from 30 cm
+        PD.setP(Math.abs(0.01));
+        PD.setD(0);
+
+        //continues to move until the distance sensor returns it is within a margin of error
+        while(Math.abs(dist - robot.topdistance.getDistance(DistanceUnit.CM)) > 0.1 && opModeIsActive()) {
+            double current = robot.topdistance.getDistance(DistanceUnit.CM);
+            temppower = PD.getOutput(current, dist);
+
+            if(runtime.seconds() < 1) {
+                temppower *= power * runtime.seconds();
+            }
+
+            leftPower = -temppower;
+            rightPower = -temppower;
+
+            double min = Math.min(Math.abs(leftPower), Math.abs(rightPower));
+
+            if(min < 0.1) {
+                leftPower *= (0.1/min);
+                rightPower *= (0.1/min);
+            }
+
+            double max = Math.max(Math.abs(leftPower), Math.abs(rightPower));
+            if (max > power)
+            {
+                leftPower *= (power/max);
+                rightPower *= (power/max);
+            }
+
+            while(!isStopRequested() && robot.topdistance.getDistance(DistanceUnit.CM) > 125){
+                robot.frontRight.setPower(power);
+                robot.frontLeft.setPower(power);
+                robot.backRight.setPower(power);
+                robot.backLeft.setPower(power);
+            }
+            robot.frontRight.setPower(rightPower);
+            robot.frontLeft.setPower(leftPower);
+            robot.backRight.setPower(rightPower);
+            robot.backLeft.setPower(leftPower);
+        }
+        robot.frontRight.setPower(0);
+        robot.frontLeft.setPower(0);
+        robot.backRight.setPower(0);
+        robot.backLeft.setPower(0);
+    }
+
     private void moveTo(double power, double dist) {
         //Accurate once it moves within 30 centimeters of the object it is approaching
         double leftPower, rightPower, temppower;

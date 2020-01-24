@@ -109,9 +109,9 @@ public class VegaHardware
         lift.setTargetPosition(0);
         lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-       /* gripper.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        gripper.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         gripper.setTargetPosition(0);
-        gripper.setMode(DcMotor.RunMode.RUN_TO_POSITION);*/
+        gripper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
 
         backLeft.setDirection(DcMotor.Direction.REVERSE);
