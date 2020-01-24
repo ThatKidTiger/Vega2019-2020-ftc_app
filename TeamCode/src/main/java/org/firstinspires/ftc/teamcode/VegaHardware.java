@@ -51,6 +51,7 @@ public class VegaHardware
     public ColorSensor colLeft; //hub 2 port 0
     public ColorSensor colRight; //hub 2 port 2
     public DistanceSensor distance; //hub 2 port 1
+    public DistanceSensor topdistance; //hub 3 port 0
 
     /* local OpMode members. */
     HardwareMap hwMap =  null;
@@ -78,6 +79,7 @@ public class VegaHardware
         colLeft = hwMap.get(ColorSensor.class, "colLeft");
         colRight = hwMap.get(ColorSensor.class, "colRight");
         distance = hwMap.get(DistanceSensor.class, "distance");
+        topdistance = hwMap.get(DistanceSensor.class, "topdistance");
 
         //Configure IMU Sensor
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();

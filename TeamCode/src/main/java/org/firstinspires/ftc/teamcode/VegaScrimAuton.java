@@ -260,6 +260,7 @@ public class VegaScrimAuton extends LinearOpMode {
     }
 
     private void moveTo(double power, double dist) {
+        //Accurate once it moves within 30 centimeters of the object it is approaching
         double leftPower, rightPower, temppower;
         //reset reference angle and PID controllers
         resetAngle();
@@ -269,8 +270,6 @@ public class VegaScrimAuton extends LinearOpMode {
         //ramps down to zero starting from 30 cm
         PD.setP(Math.abs(0.01));
         PD.setD(0);
-
-        double initial = robot.distance.getDistance(DistanceUnit.CM);
 
         //continues to move until the distance sensor returns it is within a margin of error
         while(Math.abs(dist - robot.distance.getDistance(DistanceUnit.CM)) > 0.1 && opModeIsActive()) {
@@ -298,6 +297,12 @@ public class VegaScrimAuton extends LinearOpMode {
                 rightPower *= (power/max);
             }
 
+            while(!isStopRequested() && robot.distance.getDistance(DistanceUnit.CM) > 13){
+                robot.frontRight.setPower(power);
+                robot.frontLeft.setPower(power);
+                robot.backRight.setPower(power);
+                robot.backLeft.setPower(power);
+            }
             robot.frontRight.setPower(rightPower);
             robot.frontLeft.setPower(leftPower);
             robot.backRight.setPower(rightPower);
