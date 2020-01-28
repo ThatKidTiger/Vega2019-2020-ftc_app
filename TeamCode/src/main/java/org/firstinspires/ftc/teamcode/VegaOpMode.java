@@ -64,7 +64,7 @@ public class VegaOpMode extends OpMode
     boolean upChange = false;
     int liftTarget = 0;
 
-    MiniPID liftPID = new MiniPID(0.002, 0.00015, 0.01);
+    MiniPID liftPID = new MiniPID(0.002, 0, 0.0);
 
     @Override
     public void init() {
@@ -196,7 +196,7 @@ public class VegaOpMode extends OpMode
         }
 
         robot.lift.setTargetPosition(liftTarget);
-        if(Math.abs(robot.lift.getTargetPosition() - robot.lift.getCurrentPosition()) > 5) {
+        /*if(Math.abs(robot.lift.getTargetPosition() - robot.lift.getCurrentPosition()) > 5) {
             double liftpower = liftPID.getOutput(robot.lift.getCurrentPosition(), liftTarget);
             if(Math.abs(liftpower) < 0.25) {
                 liftpower *= 0.25/Math.abs(liftpower);
@@ -205,9 +205,9 @@ public class VegaOpMode extends OpMode
         }
         else {
             robot.lift.setPower(0);
-        }
+        }*/
 
-        //robot.lift.setPower(gamepad2.right_trigger - gamepad2.left_trigger);
+        robot.lift.setPower(gamepad2.right_trigger - gamepad2.left_trigger);
 
         robot.latch.setPower(0.3 * (gamepad1.right_trigger - gamepad1.left_trigger));
 

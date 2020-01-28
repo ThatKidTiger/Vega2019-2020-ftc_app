@@ -94,13 +94,18 @@ public class FoundationBlueAuton extends LinearOpMode {
 
         runtime.reset();
         runtime.startTime();
+        initialAngle = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, DEGREES).firstAngle;
         moveTo(.45, 12);
         rotate(90, 0.8);
-        moveToTop(0.5, 30);
+        moveToTop(0.5, 32);
         rotate(90, 0.8);
         moveTime(-1, 0.5, 800);
         latch();
-        moveTo(0.8, 10);
+        moveToTop(0.8, 20);
+        rotate(90, 0.8);
+        unlatch();
+        forward(.5, 4000);
+        rotate(-90 - getAbsolute(), 0.5);
         /*forward(.8, 1800);
         moveTo(0.6, 8);
         rotate(90, 1);
@@ -142,7 +147,7 @@ public class FoundationBlueAuton extends LinearOpMode {
     public void latch(){
         runtime.reset();
         runtime.startTime();
-        while (!isStopRequested() && runtime.milliseconds() < 600){
+        while (!isStopRequested() && runtime.milliseconds() < 800){
             robot.latch.setPower(.4);
         }
         robot.latch.setPower(0);
@@ -164,20 +169,6 @@ public class FoundationBlueAuton extends LinearOpMode {
         robot.backLeft.setPower(0);
         runtime.reset();
         runtime.startTime();
-    }
-
-    //proportional power decrease to eliminate overshoot on rotations and movements
-    public double PControl(double power, double goal, double current, double threshold, double minimum) {
-        double ratio, temppower;
-        double difference = goal - current;
-        if (Math.abs(difference) < threshold * Math.signum(goal)) {
-            ratio = difference / threshold;
-            temppower = power * ratio;
-        }
-        else temppower = power;
-
-        temppower = Range.clip(temppower, minimum, 1);
-        return temppower;
     }
 
     public void forward(double power, double goal){
@@ -280,7 +271,7 @@ public class FoundationBlueAuton extends LinearOpMode {
         sleep(500);
 
         //rotates until the imu returns that the robot is within a margin of error
-        while(Math.abs(degrees - getOrientation()) > 0.1 && opModeIsActive() && Math.abs(degrees - getOrientation()) < 200 /*&& runtime.seconds() < 4*/) {
+        while(Math.abs(degrees - getOrientation()) > 0.1 && opModeIsActive() && Math.abs(degrees - getOrientation()) < 200 && runtime.seconds() < 4) {
             double orientation = getOrientation();
             temppower = PD.getOutput(orientation, degrees);
 
@@ -392,11 +383,11 @@ public class FoundationBlueAuton extends LinearOpMode {
         rotPID.reset();
         PD.reset();
         //ramps down to zero starting from 30 cm
-        PD.setP(Math.abs(0.01));
-        PD.setD(0);
+        PD.setP(Math.abs(0.02));
+        PD.setD(0.005);
 
         //continues to move until the distance sensor returns it is within a margin of error
-        while(Math.abs(dist - robot.topdistance.getDistance(DistanceUnit.CM)) > 0.1 && opModeIsActive()) {
+        while(Math.abs(dist - robot.topdistance.getDistance(DistanceUnit.CM)) > 0.1 && opModeIsActive() && runtime.seconds() < 4) {
             double current = robot.topdistance.getDistance(DistanceUnit.CM);
             temppower = PD.getOutput(current, dist);
 
@@ -450,7 +441,7 @@ public class FoundationBlueAuton extends LinearOpMode {
         PD.setD(0.005);
 
         //continues to move until the distance sensor returns it is within a margin of error
-        while(Math.abs(dist - robot.distance.getDistance(DistanceUnit.CM)) > 0.1 && opModeIsActive() /*&& runtime.seconds() < 3.5*/) {
+        while(Math.abs(dist - robot.distance.getDistance(DistanceUnit.CM)) > 0.1 && opModeIsActive() && runtime.seconds() < 3.5) {
             double current = robot.distance.getDistance(DistanceUnit.CM);
             temppower = PD.getOutput(current, dist);
 
