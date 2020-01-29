@@ -37,6 +37,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.stormbots.MiniPID;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
@@ -117,7 +118,7 @@ public class VegaOpMode extends OpMode
             robot.frontRight.setPower(-strafeTwo);
         } else if (foundation) {
             //player one slow drive foundation
-            if(gamepad1.right_stick_x < 0.1) {
+            if(Math.abs(gamepad1.right_stick_x) < 0.1) {
                 leftPower *= 0.35;
                 rightPower *= 0.35;
                 robot.backLeft.setPower(leftPower);
@@ -219,19 +220,12 @@ public class VegaOpMode extends OpMode
             aChange = false;
         }
 
-        /*if(!open) {
+        if(!open) {
             robot.gripper.setPower(-0.1);
             telemetry.addLine("Closed");
         }
         else {
             telemetry.addLine("Open");
-        }*/
-
-        if(open) {
-            robot.gripper.setTargetPosition(-280);
-        }
-        else {
-            robot.gripper.setTargetPosition(0);
         }
 
         if (gamepad1.y && !yChange) {

@@ -88,6 +88,7 @@ public class FoundationBlueAuton extends LinearOpMode {
          * The init() method of the hardware class does all the work here
          */
         robot.init(hardwareMap);
+        unlatch();
 
         while (!isStarted()) {
         }
@@ -95,17 +96,21 @@ public class FoundationBlueAuton extends LinearOpMode {
         runtime.reset();
         runtime.startTime();
         initialAngle = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, DEGREES).firstAngle;
-        moveTo(.45, 12);
+        moveTo(.4, 13);
         rotate(90, 0.8);
-        moveToTop(0.5, 32);
+        moveToTop(0.5, 35);
         rotate(90, 0.8);
         moveTime(-1, 0.5, 800);
         latch();
         moveToTop(0.8, 20);
         rotate(90, 0.8);
         unlatch();
+        rotate(getAbsolute() - 90, 0.5);
         forward(.5, 4000);
-        rotate(-90 - getAbsolute(), 0.5);
+        /*while(opModeIsActive()) {
+            telemetry.addData("Orientation", getAbsolute());
+            telemetry.update();
+        }/*
         /*forward(.8, 1800);
         moveTo(0.6, 8);
         rotate(90, 1);
@@ -116,25 +121,8 @@ public class FoundationBlueAuton extends LinearOpMode {
         moveTime(1, 0.6, 2300);
         /*moveTime(-1, 0.3, 300);
         strafeTime(-1, 0.7, 1700);*/
-        }
-
-    public void frontLeft(int goal){
-        runtime.reset();
-        runtime.startTime();
-        robot.frontRight.setPower(1);
-        robot.backRight.setPower(1);
-        robot.backLeft.setPower(1);
-        robot.frontLeft.setPower(.4);
-        while(runtime.milliseconds() < goal && !isStopRequested()){
-
-        }
-        robot.frontRight.setPower(0);
-        robot.backRight.setPower(0);
-        robot.backLeft.setPower(0);
-        robot.frontLeft.setPower(0);
-        runtime.reset();
-        runtime.startTime();
     }
+
     public void unlatch() {
         runtime.reset();
         runtime.startTime();
@@ -144,6 +132,7 @@ public class FoundationBlueAuton extends LinearOpMode {
         robot.latch.setPower(0);
 
     }
+
     public void latch(){
         runtime.reset();
         runtime.startTime();
@@ -151,24 +140,6 @@ public class FoundationBlueAuton extends LinearOpMode {
             robot.latch.setPower(.4);
         }
         robot.latch.setPower(0);
-    }
-
-    public void frontRight(int goal){
-        runtime.reset();
-        runtime.startTime();
-        robot.frontLeft.setPower(.8);
-        robot.backLeft.setPower(.8);
-        robot.backRight.setPower(.5);
-        robot.frontRight.setPower(.5);
-        while(!isStopRequested() && runtime.milliseconds() < goal){
-
-        }
-        robot.frontLeft.setPower(0);
-        robot.backLeft.setPower(0);
-        robot.backRight.setPower(0);
-        robot.backLeft.setPower(0);
-        runtime.reset();
-        runtime.startTime();
     }
 
     public void forward(double power, double goal){
@@ -281,11 +252,6 @@ public class FoundationBlueAuton extends LinearOpMode {
 
             telemetry.addData("temppower: ", temppower);
 
-            //ensures the powers are within the lower power limit
-            if(Math.abs(temppower) < 0.1) {
-                temppower = Math.signum(temppower) * (0.1);
-            }
-
             if(orientation == 0) {
                 temppower = Math.signum(degrees) * 0.1;
             }
@@ -294,20 +260,8 @@ public class FoundationBlueAuton extends LinearOpMode {
             rightPower = temppower;
 
             //caps the power at the inputed power
-            double max = Math.max(Math.abs(leftPower), Math.abs(rightPower));
-            double min = Math.min(Math.abs(leftPower), Math.abs(rightPower));
-
-            if(min < 0.14) {
-                leftPower *= (0.14/min);
-                rightPower *= (0.14/min);
-            }
-
-            if (max > power)
-            {
-                leftPower *= (power/max);
-                rightPower *= (power/max);
-            }
-
+            lowerlimit(0.1, new double[] {leftPower, rightPower});
+            upperlimit(power, new double[] {leftPower, rightPower});
 
             robot.frontRight.setPower(rightPower);
             robot.frontLeft.setPower(leftPower);
@@ -384,7 +338,7 @@ public class FoundationBlueAuton extends LinearOpMode {
         PD.reset();
         //ramps down to zero starting from 30 cm
         PD.setP(Math.abs(0.02));
-        PD.setD(0.005);
+        PD.setD(0.002);
 
         //continues to move until the distance sensor returns it is within a margin of error
         while(Math.abs(dist - robot.topdistance.getDistance(DistanceUnit.CM)) > 0.1 && opModeIsActive() && runtime.seconds() < 4) {
@@ -398,19 +352,8 @@ public class FoundationBlueAuton extends LinearOpMode {
             leftPower = -temppower;
             rightPower = -temppower;
 
-            double min = Math.min(Math.abs(leftPower), Math.abs(rightPower));
-
-            if(min < 0.1) {
-                leftPower *= (0.1/min);
-                rightPower *= (0.1/min);
-            }
-
-            double max = Math.max(Math.abs(leftPower), Math.abs(rightPower));
-            if (max > power)
-            {
-                leftPower *= (power/max);
-                rightPower *= (power/max);
-            }
+            lowerlimit(0.1, new double[] {leftPower, rightPower});
+            upperlimit(power, new double[] {leftPower, rightPower});
 
             while(!isStopRequested() && robot.topdistance.getDistance(DistanceUnit.CM) > 125){
                 robot.frontRight.setPower(power);
@@ -438,7 +381,7 @@ public class FoundationBlueAuton extends LinearOpMode {
         rotPID.reset();
         PD.reset();
         PD.setP(Math.abs(0.02));
-        PD.setD(0.005);
+        PD.setD(0.002);
 
         //continues to move until the distance sensor returns it is within a margin of error
         while(Math.abs(dist - robot.distance.getDistance(DistanceUnit.CM)) > 0.1 && opModeIsActive() && runtime.seconds() < 3.5) {
@@ -452,19 +395,8 @@ public class FoundationBlueAuton extends LinearOpMode {
             leftPower = -temppower;
             rightPower = -temppower;
 
-            double min = Math.min(Math.abs(leftPower), Math.abs(rightPower));
-
-            if(min < 0.1) {
-                leftPower *= (0.1/min);
-                rightPower *= (0.1/min);
-            }
-
-            double max = Math.max(Math.abs(leftPower), Math.abs(rightPower));
-            if (max > power)
-            {
-                leftPower *= (power/max);
-                rightPower *= (power/max);
-            }
+            lowerlimit(0.1, new double[] {leftPower, rightPower});
+            upperlimit(power, new double[] {leftPower, rightPower});
 
             while(!isStopRequested() && robot.distance.getDistance(DistanceUnit.CM) > 13){
                 robot.frontRight.setPower(power);
@@ -565,15 +497,6 @@ public class FoundationBlueAuton extends LinearOpMode {
             BR = (power + adjustment * direction) * direction;
             BL = -(power + adjustment * direction) * direction;
 
-            double maxf = Math.max(Math.abs(FR), Math.abs(FL));
-            double maxb = Math.max(Math.abs(BR), Math.abs(BL));
-            double max = Math.max(maxf, maxb);
-
-            FR *= (power/max);
-            FL *= (power/max);
-            BR *= (power/max);
-            BL *= (power/max);
-
             telemetry.addData("Motor Powers: ", "%f, %f, %f, %f", FL, BL, FR, FL);
             telemetry.update();
 
@@ -621,6 +544,42 @@ public class FoundationBlueAuton extends LinearOpMode {
         sleep(400);
     }
 
+    private double[] upperlimit(double limit, double[] input) {
+        double[] powers = new double[input.length];
+        double max = 0;
+        for(double num: input) {
+            if(Math.abs(num) > max) {
+                max = Math.abs(num);
+            }
+        }
+
+        if(max > limit) {
+            for (int i = 0; i < input.length; i++) {
+                powers[i] = input[i] * (limit / max);
+            }
+            return powers;
+        }
+        else return input;
+    }
+
+    private double[] lowerlimit(double limit, double[] input) {
+        double[] powers = new double[input.length];
+        double min = 0;
+        for(double num: input) {
+            if(Math.abs(num) < min) {
+                min = Math.abs(num);
+            }
+        }
+
+        if(min < limit) {
+            for (int i = 0; i < input.length; i++) {
+                powers[i] = input[i] * (limit / min);
+            }
+            return powers;
+        }
+        else return input;
+    }
+
     private String checkCol() {
         if((robot.colLeft.red() < 70)) {
             return "Left";
@@ -629,28 +588,5 @@ public class FoundationBlueAuton extends LinearOpMode {
             return "Right";
         }
         else return "Yellow";
-    }
-
-    private int inchestoTicks(double TICKS_PER_REV, double DIAM, double inches) {
-        return (int)Math.round(((inches / DIAM * Math.PI) * TICKS_PER_REV));
-    }
-
-    private void straighttoPos(double inches, double power) {
-        int ticks = inchestoTicks(1120, 4, inches);
-        robot.frontLeft.setTargetPosition(ticks);
-        robot.frontLeft.setPower(power);
-
-        while(robot.frontLeft.isBusy()) {
-            double temppower = power * ((ticks - robot.frontLeft.getCurrentPosition()) / ticks);
-            Range.clip(temppower, 0.15, power);
-            robot.backLeft.setPower(temppower);
-            robot.backRight.setPower(temppower);
-            robot.frontLeft.setPower(temppower);
-            robot.frontRight.setPower(temppower);
-        }
-        robot.backLeft.setPower(0);
-        robot.backRight.setPower(0);
-        robot.frontLeft.setPower(0);
-        robot.frontRight.setPower(0);
     }
 }
