@@ -77,7 +77,7 @@ public class SkystoneRedAuton extends LinearOpMode {
     private Orientation lastAngles = new Orientation();
     private double relativeAngle, globalAngle, initialAngle;
     //endregion
-
+    int pos = 0;
     private MiniPID rotPID = new MiniPID(0.05, 0.0056, 0.0055);
 
     private MiniPID PD = new MiniPID(0.01, 0 , 0);
@@ -93,25 +93,49 @@ public class SkystoneRedAuton extends LinearOpMode {
         }
         runtime.reset();
         runtime.startTime();
-        moveTo(0.3, 6);
-        strafeCol(1, 0.3);
-        moveTime(1, 0.3, 500);
-        robot.gripper.setPower(-0.19);
-        robot.lift.setTargetPosition(-150);
-        while(Math.abs(robot.lift.getTargetPosition() - robot.lift.getCurrentPosition()) < 5) {
-            robot.lift.setPower(0.5);
+        moveTo(.3, 6);
+
+        sleep(500);
+
+        if(checkCol())
+        {
+            //grab
+            rotate(-90, .3);
         }
-        robot.lift.setPower(0);
-        moveTime(-1, 0.3, 300);
-        rotate(90, 0.8);
-        moveTo(0.5, 10);
-        moveTime(-1, 0.7, 3000);
-        rotate(179, 0.8);
-        robot.gripper.setPower(0);
-        moveTime(-1, 0.5, 800);
+        else
+        {
+            pos ++;
+            strafeCol(1, .2);
+        }
+
+        sleep(500);
+
+        if(pos == 1 && checkCol())
+        {
+            //grab
+            rotate(-90, .3);
+        }
+
+        else
+        {
+            pos ++;
+            strafeCol(1, .2);
+
+        }
+
+        sleep(500);
+
+        if(pos == 2)
+        {
+
+            //Grab
+            rotate(90, .3);
+
+        }
     }
 
-    public void frontLeft(int goal){
+    public void frontLeft(int goal)
+    {
         runtime.reset();
         runtime.startTime();
         robot.frontRight.setPower(1);
@@ -128,7 +152,8 @@ public class SkystoneRedAuton extends LinearOpMode {
         runtime.reset();
         runtime.startTime();
     }
-    public void unlatch() {
+    public void unlatch()
+    {
         runtime.reset();
         runtime.startTime();
         while (!isStopRequested() && runtime.milliseconds() < 600){
@@ -137,7 +162,8 @@ public class SkystoneRedAuton extends LinearOpMode {
         robot.latch.setPower(0);
 
     }
-    public void latch(){
+    public void latch()
+    {
         runtime.reset();
         runtime.startTime();
         while (!isStopRequested() && runtime.milliseconds() < 600){
@@ -146,7 +172,8 @@ public class SkystoneRedAuton extends LinearOpMode {
         robot.latch.setPower(0);
     }
 
-    public void frontRight(int goal){
+    public void frontRight(int goal)
+    {
         runtime.reset();
         runtime.startTime();
         robot.frontLeft.setPower(.8);
@@ -165,7 +192,8 @@ public class SkystoneRedAuton extends LinearOpMode {
     }
 
     //proportional power decrease to eliminate overshoot on rotations and movements
-    public double PControl(double power, double goal, double current, double threshold, double minimum) {
+    public double PControl(double power, double goal, double current, double threshold, double minimum)
+    {
         double ratio, temppower;
         double difference = goal - current;
         if (Math.abs(difference) < threshold * Math.signum(goal)) {
@@ -178,7 +206,8 @@ public class SkystoneRedAuton extends LinearOpMode {
         return temppower;
     }
 
-    public void forward(double power, double goal){
+    public void forward(double power, double goal)
+    {
         runtime.reset();
         runtime.startTime();
         robot.frontRight.setPower(power);
@@ -197,7 +226,8 @@ public class SkystoneRedAuton extends LinearOpMode {
         runtime.startTime();
     }
 
-    private void resetAngle() {
+    private void resetAngle()
+    {
         //retrieve current orientation
         lastAngles = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
@@ -206,7 +236,8 @@ public class SkystoneRedAuton extends LinearOpMode {
         globalAngle = lastAngles.firstAngle;
     }
 
-    private double getOrientation() {
+    private double getOrientation()
+    {
         //retrieve current imu orientation information
         Orientation angles = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
@@ -248,7 +279,8 @@ public class SkystoneRedAuton extends LinearOpMode {
         return relativeAngle;
     }
 
-    private double getAbsolute() {
+    private double getAbsolute()
+    {
         //retrieve current imu orientation information
         Orientation angles = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
@@ -265,7 +297,8 @@ public class SkystoneRedAuton extends LinearOpMode {
         return deltaAngle;
     }
 
-    private void rotate(double degrees, double power) {
+    private void rotate(double degrees, double power)
+    {
         double leftPower, rightPower, temppower;
         //reset reference angle and PID controllers
         resetAngle();

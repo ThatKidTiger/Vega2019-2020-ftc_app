@@ -81,7 +81,7 @@ public class SkystoneBlueAuton extends LinearOpMode {
     private MiniPID rotPID = new MiniPID(0.05, 0.0056, 0.0055);
 
     private MiniPID PD = new MiniPID(0.01, 0 , 0);
-
+    int pos = 0;
     @Override
     public void runOpMode() {
         /* Initialize the drive system variables.
@@ -89,26 +89,44 @@ public class SkystoneBlueAuton extends LinearOpMode {
          */
         robot.init(hardwareMap);
 
-        while (!isStarted()) {
+        while (!isStarted())
+        {
         }
         runtime.reset();
         runtime.startTime();
-        /*moveTo(0.3, 6);
-        strafeCol(1, 0.3);
-        moveTime(1, 0.3, 500);
-        robot.gripper.setPower(-0.19);
-        robot.lift.setTargetPosition(-150);
-        while(Math.abs(robot.lift.getTargetPosition() - robot.lift.getCurrentPosition()) < 5) {
-            robot.lift.setPower(0.5);
+        moveTo(.3, 6);
+        sleep(500);
+        if(checkCol())
+        {
+            //grab
+            rotate(90, .3);
         }
-        robot.lift.setPower(0);
-        moveTime(-1, 0.3, 300);
-        rotate(90, 0.8);
-        moveTo(0.5, 10);
-        moveTime(-1, 0.7, 3000);
-        rotate(179, 0.8);
-        robot.gripper.setPower(0);
-        moveTime(-1, 0.5, 800);*/
+        else
+        {
+            pos ++;
+            strafeCol(-1, .2);
+        }
+
+        sleep(500);
+
+        if(pos == 1 && checkCol())
+        {
+            //grab
+            rotate(90, .3);
+        }
+        else
+        {
+            pos ++;
+            strafeCol(-1, .2);
+
+        }
+
+        if(pos == 2)
+        {
+            //Grab
+            rotate(90, .3);
+
+        }
 
     }
 

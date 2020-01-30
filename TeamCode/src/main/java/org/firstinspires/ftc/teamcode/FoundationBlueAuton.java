@@ -89,38 +89,25 @@ public class FoundationBlueAuton extends LinearOpMode {
          */
         robot.init(hardwareMap);
         unlatch();
+        initialAngle = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, DEGREES).firstAngle;
 
         while (!isStarted()) {
         }
 
         runtime.reset();
         runtime.startTime();
-        initialAngle = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, DEGREES).firstAngle;
-        moveTo(.4, 13);
+        moveTo(.6, 13);
         rotate(90, 0.8);
-        moveToTop(0.5, 35);
+        moveToTop(0.6, 36);
         rotate(90, 0.8);
         moveTime(-1, 0.5, 800);
         latch();
         moveToTop(0.8, 20);
         rotate(90, 0.8);
         unlatch();
-        rotate(getAbsolute() - 90, 0.5);
-        forward(.5, 4000);
-        /*while(opModeIsActive()) {
-            telemetry.addData("Orientation", getAbsolute());
-            telemetry.update();
-        }/*
-        /*forward(.8, 1800);
-        moveTo(0.6, 8);
-        rotate(90, 1);
-        unlatch();
-        robot.gripper.setPower(-0.2);
-        sleep(300);
-        robot.gripper.setPower(0);
-        moveTime(1, 0.6, 2300);
-        /*moveTime(-1, 0.3, 300);
-        strafeTime(-1, 0.7, 1700);*/
+        rotate(limitAxes(getAbsolute() - 90), 0.5);
+        strafeTime(1, 0.3, 1000);
+        forward(.5, 3000);
     }
 
     public void unlatch() {
@@ -217,7 +204,7 @@ public class FoundationBlueAuton extends LinearOpMode {
         Orientation angles = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
         //retrieve deviation relative to the initial final reference angle
-        double deltaAngle = initialAngle - lastAngles.firstAngle;
+        double deltaAngle = initialAngle - angles.firstAngle;
 
         //because IMU returns rotation on a set of axes -180 to 180 adjust angle change to be the most logical direction
         if (deltaAngle < -180)
@@ -252,6 +239,11 @@ public class FoundationBlueAuton extends LinearOpMode {
 
             telemetry.addData("temppower: ", temppower);
 
+            //ensures the powers are within the lower power limit
+            if(Math.abs(temppower) < 0.1) {
+                temppower = Math.signum(temppower) * (0.1);
+            }
+
             if(orientation == 0) {
                 temppower = Math.signum(degrees) * 0.1;
             }
@@ -260,8 +252,20 @@ public class FoundationBlueAuton extends LinearOpMode {
             rightPower = temppower;
 
             //caps the power at the inputed power
-            lowerlimit(0.1, new double[] {leftPower, rightPower});
-            upperlimit(power, new double[] {leftPower, rightPower});
+            double max = Math.max(Math.abs(leftPower), Math.abs(rightPower));
+            double min = Math.min(Math.abs(leftPower), Math.abs(rightPower));
+
+            if(min < 0.14) {
+                leftPower *= (0.14/min);
+                rightPower *= (0.14/min);
+            }
+
+            if (max > power)
+            {
+                leftPower *= (power/max);
+                rightPower *= (power/max);
+            }
+
 
             robot.frontRight.setPower(rightPower);
             robot.frontLeft.setPower(leftPower);
@@ -338,7 +342,7 @@ public class FoundationBlueAuton extends LinearOpMode {
         PD.reset();
         //ramps down to zero starting from 30 cm
         PD.setP(Math.abs(0.02));
-        PD.setD(0.002);
+        PD.setD(0.004);
 
         //continues to move until the distance sensor returns it is within a margin of error
         while(Math.abs(dist - robot.topdistance.getDistance(DistanceUnit.CM)) > 0.1 && opModeIsActive() && runtime.seconds() < 4) {
@@ -352,8 +356,19 @@ public class FoundationBlueAuton extends LinearOpMode {
             leftPower = -temppower;
             rightPower = -temppower;
 
-            lowerlimit(0.1, new double[] {leftPower, rightPower});
-            upperlimit(power, new double[] {leftPower, rightPower});
+            double min = Math.min(Math.abs(leftPower), Math.abs(rightPower));
+
+            if(min < 0.1) {
+                leftPower *= (0.1/min);
+                rightPower *= (0.1/min);
+            }
+
+            double max = Math.max(Math.abs(leftPower), Math.abs(rightPower));
+            if (max > power)
+            {
+                leftPower *= (power/max);
+                rightPower *= (power/max);
+            }
 
             while(!isStopRequested() && robot.topdistance.getDistance(DistanceUnit.CM) > 125){
                 robot.frontRight.setPower(power);
@@ -381,7 +396,7 @@ public class FoundationBlueAuton extends LinearOpMode {
         rotPID.reset();
         PD.reset();
         PD.setP(Math.abs(0.02));
-        PD.setD(0.002);
+        PD.setD(0.004);
 
         //continues to move until the distance sensor returns it is within a margin of error
         while(Math.abs(dist - robot.distance.getDistance(DistanceUnit.CM)) > 0.1 && opModeIsActive() && runtime.seconds() < 3.5) {
@@ -395,8 +410,19 @@ public class FoundationBlueAuton extends LinearOpMode {
             leftPower = -temppower;
             rightPower = -temppower;
 
-            lowerlimit(0.1, new double[] {leftPower, rightPower});
-            upperlimit(power, new double[] {leftPower, rightPower});
+            double min = Math.min(Math.abs(leftPower), Math.abs(rightPower));
+
+            if(min < 0.1) {
+                leftPower *= (0.1/min);
+                rightPower *= (0.1/min);
+            }
+
+            double max = Math.max(Math.abs(leftPower), Math.abs(rightPower));
+            if (max > power)
+            {
+                leftPower *= (power/max);
+                rightPower *= (power/max);
+            }
 
             while(!isStopRequested() && robot.distance.getDistance(DistanceUnit.CM) > 13){
                 robot.frontRight.setPower(power);
@@ -497,6 +523,15 @@ public class FoundationBlueAuton extends LinearOpMode {
             BR = (power + adjustment * direction) * direction;
             BL = -(power + adjustment * direction) * direction;
 
+            double maxf = Math.max(Math.abs(FR), Math.abs(FL));
+            double maxb = Math.max(Math.abs(BR), Math.abs(BL));
+            double max = Math.max(maxf, maxb);
+
+            FR *= (power/max);
+            FL *= (power/max);
+            BR *= (power/max);
+            BL *= (power/max);
+
             telemetry.addData("Motor Powers: ", "%f, %f, %f, %f", FL, BL, FR, FL);
             telemetry.update();
 
@@ -544,42 +579,6 @@ public class FoundationBlueAuton extends LinearOpMode {
         sleep(400);
     }
 
-    private double[] upperlimit(double limit, double[] input) {
-        double[] powers = new double[input.length];
-        double max = 0;
-        for(double num: input) {
-            if(Math.abs(num) > max) {
-                max = Math.abs(num);
-            }
-        }
-
-        if(max > limit) {
-            for (int i = 0; i < input.length; i++) {
-                powers[i] = input[i] * (limit / max);
-            }
-            return powers;
-        }
-        else return input;
-    }
-
-    private double[] lowerlimit(double limit, double[] input) {
-        double[] powers = new double[input.length];
-        double min = 0;
-        for(double num: input) {
-            if(Math.abs(num) < min) {
-                min = Math.abs(num);
-            }
-        }
-
-        if(min < limit) {
-            for (int i = 0; i < input.length; i++) {
-                powers[i] = input[i] * (limit / min);
-            }
-            return powers;
-        }
-        else return input;
-    }
-
     private String checkCol() {
         if((robot.colLeft.red() < 70)) {
             return "Left";
@@ -588,5 +587,13 @@ public class FoundationBlueAuton extends LinearOpMode {
             return "Right";
         }
         else return "Yellow";
+    }
+
+    private double limitAxes(double orientation) {
+        if (orientation < -180)
+            orientation += 360;
+        else if (orientation > 180)
+            orientation -= 360;
+        return orientation;
     }
 }
