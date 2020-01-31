@@ -90,17 +90,17 @@ public class SkystoneBlueAuton extends LinearOpMode {
     private void grab() {
         runtime.reset();
         while (!isStopRequested() && runtime.milliseconds() < 500){
-            robot.latch.setPower(-0.2);
+            robot.gripper.setPower(-0.2);
         }
-        robot.latch.setPower(0);
+        robot.gripper.setPower(0);
     }
 
     private void release() {
         runtime.reset();
         while (!isStopRequested() && runtime.milliseconds() < 500){
-            robot.latch.setPower(0.2);
+            robot.gripper.setPower(0.2);
         }
-        robot.latch.setPower(0);
+        robot.gripper.setPower(0);
     }
 
     public void unlatch() {
@@ -109,7 +109,6 @@ public class SkystoneBlueAuton extends LinearOpMode {
             robot.latch.setPower(-.8);
         }
         robot.latch.setPower(0);
-
     }
 
     public void latch(){
@@ -197,7 +196,7 @@ public class SkystoneBlueAuton extends LinearOpMode {
                 temppower *= Math.abs(orientation/(degrees/3));
             }
 
-            telemetry.addData("temppower: ", temppower);
+            //telemetry.addData("temppower: ", temppower);
 
             //ensures the powers are within the lower power limit
             if(Math.abs(temppower) < 0.15) {
@@ -439,11 +438,11 @@ public class SkystoneBlueAuton extends LinearOpMode {
     }
 
     private boolean checkCol() {
-        boolean i = false;
+        boolean black = false;
         if((robot.colLeft.red() < 70) && robot.colRight.red() < 70) {
-            i = true;
+            black = true;
         }
-        return i;
+        return black;
     }
 
     private double limitAxes(double orientation) {

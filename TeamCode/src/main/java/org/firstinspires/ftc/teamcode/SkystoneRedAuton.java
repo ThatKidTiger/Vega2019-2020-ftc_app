@@ -196,7 +196,7 @@ public class SkystoneRedAuton extends LinearOpMode {
                 temppower *= Math.abs(orientation/(degrees/3));
             }
 
-            telemetry.addData("temppower: ", temppower);
+            //telemetry.addData("temppower: ", temppower);
 
             //ensures the powers are within the lower power limit
             if(Math.abs(temppower) < 0.15) {

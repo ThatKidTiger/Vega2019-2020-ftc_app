@@ -87,10 +87,10 @@ public class VegaHardware
         latch = hwMap.get(DcMotor.class, "latch");
         lift = hwMap.get(DcMotor.class, "lift");
 
-        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        /*lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         lift.setTargetPosition(0);
         lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        lift.setDirection(DcMotor.Direction.REVERSE);
+        lift.setDirection(DcMotor.Direction.REVERSE);*/
 
         gripper = hwMap.get(DcMotor.class, "gripper");
 

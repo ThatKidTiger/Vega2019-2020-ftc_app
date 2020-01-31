@@ -29,8 +29,8 @@ public class VegaOpMode extends OpMode
     boolean aChange = false;
     boolean slow = false;
     boolean yChange = false;
-    boolean downChange = false;
-    boolean upChange = false;
+    //boolean downChange = false;
+    //boolean upChange = false;
     int liftTarget = 0;
 
     int opened;
@@ -67,8 +67,15 @@ public class VegaOpMode extends OpMode
         double strafe = gamepad1.right_stick_x;
         double rightY = -gamepad1.right_stick_y;
 
-        leftPower = Range.clip(drive + turn, -1.0, 1.0);
-        rightPower = Range.clip(drive - turn, -1.0, 1.0);
+        leftPower = drive + turn;
+        rightPower = drive - turn;
+
+        double max = Math.max(Math.abs(leftPower), Math.abs(rightPower));
+        if (max > 1)
+        {
+            rightPower /= max;
+            leftPower /= max;
+        }
 
         if (gamepad2.x && !xChange) {
             xChange = true;
@@ -108,7 +115,7 @@ public class VegaOpMode extends OpMode
             robot.frontLeft.setPower(leftPower);
             robot.frontRight.setPower(rightPower);
         } else {
-            if (Math.abs(rightY) < .18) {
+            if (Math.abs(rightY) < .26) {
                 //strafe if gamepad1 right stick is in the horizontal zone
                 robot.backLeft.setPower(-strafe);
                 robot.backRight.setPower(strafe);
@@ -119,7 +126,7 @@ public class VegaOpMode extends OpMode
                 rightPower = strafe + rightY;
                 leftPower = rightY - strafe;
 
-                double max = Math.max(Math.abs(rightPower), Math.abs(leftPower));
+                max = Math.max(Math.abs(rightPower), Math.abs(leftPower));
                 if (max > 1) {
                     rightPower /= max;
                     leftPower /= max;
@@ -131,14 +138,14 @@ public class VegaOpMode extends OpMode
             }
         }
 
-        if(gamepad2.right_trigger > 0) {
+        /*if(gamepad2.right_trigger > 0) {
             liftTarget -= Math.round(gamepad2.right_trigger * 7);
         }
         else if(gamepad2.left_trigger > 0) {
             liftTarget += Math.round(gamepad2.right_trigger * 7);
-        }
+        }*/
 
-        if(gamepad2.dpad_up && !upChange) {
+        /*if(gamepad2.dpad_up && !upChange) {
             upChange = true;
             liftTarget -= 582;
         }
@@ -152,7 +159,7 @@ public class VegaOpMode extends OpMode
         }
         else if(!gamepad2.dpad_down) {
             downChange = false;
-        }
+        }*/
 
         if(gamepad2.right_bumper) {
             robot.gripper.setPower(-0.2);
@@ -164,7 +171,7 @@ public class VegaOpMode extends OpMode
             robot.gripper.setPower(0);
         }
 
-        robot.lift.setTargetPosition(liftTarget);
+        //robot.lift.setTargetPosition(liftTarget);
         /*if(Math.abs(robot.lift.getTargetPosition() - robot.lift.getCurrentPosition()) > 5) {
             double liftpower = liftPID.getOutput(robot.lift.getCurrentPosition(), liftTarget);
             if(Math.abs(liftpower) < 0.25) {
@@ -202,7 +209,7 @@ public class VegaOpMode extends OpMode
             yChange = true;
             slow = !slow;
         }
-        else if(!gamepad2.y) {
+        else if(!gamepad1.y) {
             yChange = false;
         }
 
@@ -244,9 +251,5 @@ public class VegaOpMode extends OpMode
 
         lastAngles = angles;
         return deltaAngle;
-    }
-
-    private double inchestoTicks(double TICKS_PER_REV, double DIAM, double inches) {
-        return (inches / DIAM * Math.PI) * TICKS_PER_REV;
     }
 }
