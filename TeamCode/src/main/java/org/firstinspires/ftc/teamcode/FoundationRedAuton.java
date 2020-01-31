@@ -200,7 +200,7 @@ public class FoundationRedAuton extends LinearOpMode {
             }
 
             if(Math.abs(temppower) > power) {
-                temppower *= (power/temppower);
+                temppower *= (power/Math.abs(temppower));
             }
 
             if(orientation == 0) {
@@ -246,12 +246,12 @@ public class FoundationRedAuton extends LinearOpMode {
 
             //caps the motor powers at a minimum
             if(Math.abs(temppower) < 0.15) {
-                temppower *= (0.15/temppower);
+                temppower *= (0.15/Math.abs(temppower));
             }
 
             //caps the motor powers at a maximum
-            if (Math.abs(temppower) > power) {
-                temppower *= (power/temppower);
+            if(Math.abs(temppower) > power) {
+                temppower *= (power/Math.abs(temppower));
             }
 
             leftPower = -temppower;
@@ -287,11 +287,11 @@ public class FoundationRedAuton extends LinearOpMode {
             }
 
             if(Math.abs(temppower) < 0.15) {
-                temppower *= (0.15/temppower);
+                temppower *= (0.15/Math.abs(temppower));
             }
 
             if (Math.abs(temppower) > power) {
-                temppower *= (power/temppower);
+                temppower *= (power/Math.abs(temppower));
             }
 
             leftPower = -temppower;
@@ -333,11 +333,11 @@ public class FoundationRedAuton extends LinearOpMode {
             }
 
             if(Math.abs(temppower) < 0.15) {
-                temppower *= (0.15/temppower);
+                temppower *= (0.15/Math.abs(temppower));
             }
 
             if (Math.abs(temppower) > power) {
-                temppower *= (power/temppower);
+                temppower *= (power/Math.abs(temppower));
             }
 
             leftPower = -temppower;
@@ -435,7 +435,7 @@ public class FoundationRedAuton extends LinearOpMode {
 
     private boolean checkCol() {
         boolean i = false;
-        if((robot.colLeft.red() < 70) && robot.colRight.red() < 70) {
+        if((robot.colLeft.alpha() < 75) && robot.colRight.alpha() < 75) {
             i = true;
         }
         return i;

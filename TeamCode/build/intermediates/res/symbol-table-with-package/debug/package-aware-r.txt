@@ -473,12 +473,14 @@ menu main_menu
 menu menu_server
 raw chimeconnect
 raw chimedisconnect
+raw close
 raw color_fragment_shader
 raw cube_mesh_fragment_shader
 raw cube_mesh_vertex_shader
 raw errormessage
 raw gold
 raw nxtstartupsound
+raw open
 raw readme
 raw silver
 raw simple_vertex_shader

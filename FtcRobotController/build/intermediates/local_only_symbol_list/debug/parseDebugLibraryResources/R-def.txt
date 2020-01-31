@@ -32,7 +32,9 @@ id top_bar
 id webViewBlocksRuntime
 layout activity_ftc_controller
 menu ftc_robot_controller
+raw close
 raw gold
+raw open
 raw silver
 string about_menu_item
 string app_name

@@ -65,21 +65,23 @@ public class SkystoneRedAuton extends LinearOpMode {
 
         runtime.reset();
         runtime.startTime();
-        moveTo(.3, 13);
+        moveTo(.3, 8);
         sleep(250);
 
         strafeCol(-1, 0.3);
+        moveTime(1, 0.4, 250);
         grab();
-        moveTime(-1, 0.5, 200);
+        moveTime(-1, 0.5, 400);
         rotate(-90, 0.8);
         moveToTop(0.8, 120);
         release();
-        rotate(180, 0.8);
+        rotate(179, 0.8);
         moveToTop(0.8, 15);
         rotate(-90, 0.8);
         strafeCol(1, 0.3);
+        moveTime(1, 0.4, 250);
         grab();
-        moveTime(-1, 0.5, 200);
+        moveTime(-1, 0.5, 400);
         rotate(-90, 0.8);
         moveToTop(0.8, 120);
         release();
@@ -89,17 +91,17 @@ public class SkystoneRedAuton extends LinearOpMode {
     private void grab() {
         runtime.reset();
         while (!isStopRequested() && runtime.milliseconds() < 500){
-            robot.latch.setPower(-0.2);
+            robot.gripper.setPower(-0.4);
         }
-        robot.latch.setPower(0);
+        robot.gripper.setPower(0);
     }
 
     private void release() {
         runtime.reset();
         while (!isStopRequested() && runtime.milliseconds() < 500){
-            robot.latch.setPower(0.2);
+            robot.gripper.setPower(0.4);
         }
-        robot.latch.setPower(0);
+        robot.gripper.setPower(0);
     }
 
     public void unlatch() {
@@ -204,7 +206,7 @@ public class SkystoneRedAuton extends LinearOpMode {
             }
 
             if(Math.abs(temppower) > power) {
-                temppower *= (power/temppower);
+                temppower *= (power/Math.abs(temppower));
             }
 
             if(orientation == 0) {
@@ -250,12 +252,12 @@ public class SkystoneRedAuton extends LinearOpMode {
 
             //caps the motor powers at a minimum
             if(Math.abs(temppower) < 0.15) {
-                temppower *= (0.15/temppower);
+                temppower *= (0.15/Math.abs(temppower));
             }
 
             //caps the motor powers at a maximum
-            if (Math.abs(temppower) > power) {
-                temppower *= (power/temppower);
+            if(Math.abs(temppower) > power) {
+                temppower *= (power/Math.abs(temppower));
             }
 
             leftPower = -temppower;
@@ -291,11 +293,11 @@ public class SkystoneRedAuton extends LinearOpMode {
             }
 
             if(Math.abs(temppower) < 0.15) {
-                temppower *= (0.15/temppower);
+                temppower *= (0.15/Math.abs(temppower));
             }
 
             if (Math.abs(temppower) > power) {
-                temppower *= (power/temppower);
+                temppower *= (power/Math.abs(temppower));
             }
 
             leftPower = -temppower;
@@ -337,11 +339,11 @@ public class SkystoneRedAuton extends LinearOpMode {
             }
 
             if(Math.abs(temppower) < 0.15) {
-                temppower *= (0.15/temppower);
+                temppower *= (0.15/Math.abs(temppower));
             }
 
             if (Math.abs(temppower) > power) {
-                temppower *= (power/temppower);
+                temppower *= (power/Math.abs(temppower));
             }
 
             leftPower = -temppower;
@@ -439,7 +441,7 @@ public class SkystoneRedAuton extends LinearOpMode {
 
     private boolean checkCol() {
         boolean i = false;
-        if((robot.colLeft.red() < 70) && robot.colRight.red() < 70) {
+        if((robot.colLeft.alpha() < 75) && robot.colRight.alpha() < 75) {
             i = true;
         }
         return i;

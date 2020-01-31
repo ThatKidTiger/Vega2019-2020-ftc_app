@@ -84,12 +84,12 @@
         "source": "C:\\Users\\robo\\.gradle\\caches\\transforms-2\\files-2.1\\b73d0db3c489aeab8b531c92b0313ef9\\support-compat-28.0.0\\res\\drawable\\notification_bg.xml"
     },
     {
-        "merged": "C:\\Users\\robo\\Documents\\Vega7407_2019-20\\SkyStone-master\\Vega2019-2020-ftc_app\\TeamCode\\build\\intermediates\\res\\merged\\debug\\raw_nxtstartupsound.wav.flat",
-        "source": "C:\\Users\\robo\\.gradle\\caches\\transforms-2\\files-2.1\\2c8f37aedfeebfc5c2c910d52f8bc0da\\FtcCommon-release\\res\\raw\\nxtstartupsound.wav"
-    },
-    {
         "merged": "C:\\Users\\robo\\Documents\\Vega7407_2019-20\\SkyStone-master\\Vega2019-2020-ftc_app\\TeamCode\\build\\intermediates\\res\\merged\\debug\\layout_analog_output_device.xml.flat",
         "source": "C:\\Users\\robo\\.gradle\\caches\\transforms-2\\files-2.1\\2c8f37aedfeebfc5c2c910d52f8bc0da\\FtcCommon-release\\res\\layout\\analog_output_device.xml"
+    },
+    {
+        "merged": "C:\\Users\\robo\\Documents\\Vega7407_2019-20\\SkyStone-master\\Vega2019-2020-ftc_app\\TeamCode\\build\\intermediates\\res\\merged\\debug\\raw_nxtstartupsound.wav.flat",
+        "source": "C:\\Users\\robo\\.gradle\\caches\\transforms-2\\files-2.1\\2c8f37aedfeebfc5c2c910d52f8bc0da\\FtcCommon-release\\res\\raw\\nxtstartupsound.wav"
     },
     {
         "merged": "C:\\Users\\robo\\Documents\\Vega7407_2019-20\\SkyStone-master\\Vega2019-2020-ftc_app\\TeamCode\\build\\intermediates\\res\\merged\\debug\\layout_i2cs.xml.flat",
@@ -234,6 +234,10 @@
     {
         "merged": "C:\\Users\\robo\\Documents\\Vega7407_2019-20\\SkyStone-master\\Vega2019-2020-ftc_app\\TeamCode\\build\\intermediates\\res\\merged\\debug\\drawable-mdpi-v4_notification_bg_low_pressed.9.png.flat",
         "source": "C:\\Users\\robo\\.gradle\\caches\\transforms-2\\files-2.1\\b73d0db3c489aeab8b531c92b0313ef9\\support-compat-28.0.0\\res\\drawable-mdpi-v4\\notification_bg_low_pressed.9.png"
+    },
+    {
+        "merged": "C:\\Users\\robo\\Documents\\Vega7407_2019-20\\SkyStone-master\\Vega2019-2020-ftc_app\\TeamCode\\build\\intermediates\\res\\merged\\debug\\raw_close.wav.flat",
+        "source": "C:\\Users\\robo\\Documents\\Vega7407_2019-20\\SkyStone-master\\Vega2019-2020-ftc_app\\FtcRobotController\\build\\intermediates\\packaged_res\\debug\\raw\\close.wav"
     },
     {
         "merged": "C:\\Users\\robo\\Documents\\Vega7407_2019-20\\SkyStone-master\\Vega2019-2020-ftc_app\\TeamCode\\build\\intermediates\\res\\merged\\debug\\raw_ss_alarm.wav.flat",
@@ -462,6 +466,10 @@
     {
         "merged": "C:\\Users\\robo\\Documents\\Vega7407_2019-20\\SkyStone-master\\Vega2019-2020-ftc_app\\TeamCode\\build\\intermediates\\res\\merged\\debug\\xml_rev_scoot.xml.flat",
         "source": "C:\\Users\\robo\\.gradle\\caches\\transforms-2\\files-2.1\\2c8f37aedfeebfc5c2c910d52f8bc0da\\FtcCommon-release\\res\\xml\\rev_scoot.xml"
+    },
+    {
+        "merged": "C:\\Users\\robo\\Documents\\Vega7407_2019-20\\SkyStone-master\\Vega2019-2020-ftc_app\\TeamCode\\build\\intermediates\\res\\merged\\debug\\raw_open.wav.flat",
+        "source": "C:\\Users\\robo\\Documents\\Vega7407_2019-20\\SkyStone-master\\Vega2019-2020-ftc_app\\FtcRobotController\\build\\intermediates\\packaged_res\\debug\\raw\\open.wav"
     },
     {
         "merged": "C:\\Users\\robo\\Documents\\Vega7407_2019-20\\SkyStone-master\\Vega2019-2020-ftc_app\\TeamCode\\build\\intermediates\\res\\merged\\debug\\drawable_icon_robotcontroller.png.flat",

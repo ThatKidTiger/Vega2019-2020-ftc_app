@@ -4,12 +4,12 @@ import com.qualcomm.ftccommon.SoundPlayer;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 import com.stormbots.MiniPID;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 @TeleOp(name="VegaOpMode", group="VegaBot")
@@ -138,6 +138,13 @@ public class VegaOpMode extends OpMode
             }
         }
 
+        if(Math.abs(gamepad2.left_stick_y) > 0.1) {
+            robot.gripper.setPower(-gamepad2.left_stick_y * 0.28);
+        }
+        else {
+            robot.gripper.setPower(0);
+        }
+
         /*if(gamepad2.right_trigger > 0) {
             liftTarget -= Math.round(gamepad2.right_trigger * 7);
         }
@@ -161,16 +168,6 @@ public class VegaOpMode extends OpMode
             downChange = false;
         }*/
 
-        if(gamepad2.right_bumper) {
-            robot.gripper.setPower(-0.2);
-        }
-        else if(gamepad2.left_bumper) {
-            robot.gripper.setPower(0.2);
-        }
-        else {
-            robot.gripper.setPower(0);
-        }
-
         //robot.lift.setTargetPosition(liftTarget);
         /*if(Math.abs(robot.lift.getTargetPosition() - robot.lift.getCurrentPosition()) > 5) {
             double liftpower = liftPID.getOutput(robot.lift.getCurrentPosition(), liftTarget);
@@ -187,7 +184,7 @@ public class VegaOpMode extends OpMode
 
         robot.latch.setPower(0.3 * (gamepad1.right_trigger - gamepad1.left_trigger));
 
-        if(gamepad2.a && !aChange) {
+        /*if(gamepad2.a && !aChange) {
             aChange = true;
             if(open) {
                 SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, closed);
@@ -202,8 +199,9 @@ public class VegaOpMode extends OpMode
         }
 
         if(!open) {
-            robot.gripper.setPower(-0.1);
-        }
+            robot.gripper.setPower(-0.2);
+        }*/
+
 
         if (gamepad1.y && !yChange) {
             yChange = true;
@@ -213,14 +211,14 @@ public class VegaOpMode extends OpMode
             yChange = false;
         }
 
-        /*telemetry.addData("Time: ", runtime.milliseconds());
-        telemetry.addData("IMU Calib", robot.imu.getCalibrationStatus().toString());
+        //telemetry.addData("Time: ", runtime.milliseconds());
+        //telemetry.addData("IMU Calib", robot.imu.getCalibrationStatus().toString());
         telemetry.addData("Distance(cm): ", "%f", robot.distance.getDistance(DistanceUnit.CM));
         telemetry.addData("Top Distance(cm): ", "%f", robot.topdistance.getDistance(DistanceUnit.CM));
-        telemetry.addData("Angle: ", getOrientation());
+        //telemetry.addData("Angle: ", getOrientation());
         telemetry.addData("Left R,G,B,A: ", "%d, %d, %d, %d", robot.colLeft.red(), robot.colLeft.green(), robot.colLeft.blue(), robot.colLeft.alpha());
         telemetry.addData("Right R,G,B,A: ", "%d, %d, %d, %d", robot.colRight.red(), robot.colRight.green(), robot.colRight.blue(), robot.colRight.alpha());
-        telemetry.addData("Latch: ", "%d %d", robot.latch.getCurrentPosition(), robot.latch.getTargetPosition());
+        /*telemetry.addData("Latch: ", "%d %d", robot.latch.getCurrentPosition(), robot.latch.getTargetPosition());
         telemetry.addData("Lift: ","%d, %d" , robot.lift.getCurrentPosition(), robot.lift.getTargetPosition());
         telemetry.addData("Lift Power: ", gamepad2.right_trigger - gamepad2.left_trigger);*/
     }
