@@ -40,51 +40,79 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
-@Autonomous(name="VegaScrimAuton", group="queenYash")
-public class VegaScrimAuton extends LinearOpMode {
+import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
+
+@Autonomous(name="VegaTemplateAuton", group="queenYash")
+public class VegaTemplateAuton extends LinearOpMode {
 
     /* Declare OpMode members. */
     VegaHardware  robot   = new VegaHardware();
 
-    private ElapsedTime runtime = new ElapsedTime(0);
-
-    public static final double NV_40_COUNTS = 1120;
-    public static final double NV_40_DIAM = 10.16;
+    ElapsedTime runtime = new ElapsedTime(0);
 
     //region intrinsic orientation variables
     private Orientation lastAngles = new Orientation();
     private double relativeAngle, globalAngle, initialAngle;
     //endregion
 
-    private MiniPID rotPID = new MiniPID(0.05, 0.0056, 0.0055);
-
-    private MiniPID PD = new MiniPID(0.032, 0 , 0.01);
-
-
     @Override
     public void runOpMode() {
-
         /* Initialize the drive system variables.
          * The init() method of the hardware class does all the work here
          */
         robot.init(hardwareMap);
-        robot.imu.readCalibrationData();
+        unlatch();
+        initialAngle = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, DEGREES).firstAngle;
 
-        while (!isStarted()) {
+        while (!isStarted()) {}
 
+        runtime.reset();
+        runtime.startTime();
+        moveTo(.45, 13);
+        rotate(90, 0.8);
+        moveToTop(0.7, 36);
+        rotate(90, 0.8);
+        moveTime(-1, 0.5, 800);
+        latch();
+        moveToTop(0.8, 20);
+        rotate(90, 0.8);
+        unlatch();
+        rotate(limitAxes(getAbsolute() - 90), 0.8);
+        strafeTime(1, 0.3, 1000);
+        moveTime(1, .5, 3000);
+    }
+
+    private void grab() {
+        runtime.reset();
+        while (!isStopRequested() && runtime.milliseconds() < 500){
+            robot.latch.setPower(-0.2);
         }
-        initialAngle = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
-        moveTo(0.8, 6);
-        grab();
-        moveDistance(0.6, -10);
-        rotate(-90, 0.6);
-        moveTo(0.8, 20);
-        rotate(90, 0.6);
-        moveTime(1, 0.6, 400);
-        robot.gripper.setTargetPosition(0);
-        rotate(90, 0.6);
-        moveTime(1, 0.8, 600);
+        robot.latch.setPower(0);
+    }
 
+    private void release() {
+        runtime.reset();
+        while (!isStopRequested() && runtime.milliseconds() < 500){
+            robot.latch.setPower(0.2);
+        }
+        robot.latch.setPower(0);
+    }
+
+    public void unlatch() {
+        runtime.reset();
+        while (!isStopRequested() && runtime.milliseconds() < 400){
+            robot.latch.setPower(-.8);
+        }
+        robot.latch.setPower(0);
+
+    }
+
+    public void latch(){
+        runtime.reset();
+        while (!isStopRequested() && runtime.milliseconds() < 400){
+            robot.latch.setPower(.8);
+        }
+        robot.latch.setPower(0);
     }
 
     private void resetAngle() {
@@ -104,10 +132,7 @@ public class VegaScrimAuton extends LinearOpMode {
         double deltaAngle = angles.firstAngle - globalAngle;
 
         //because IMU returns rotation on a set of axes -180 to 180 adjust angle change to be the most logical direction
-        if (deltaAngle < -180)
-            deltaAngle += 360;
-        else if (deltaAngle > 180)
-            deltaAngle -= 360;
+        deltaAngle = limitAxes(deltaAngle);
 
         //set lastAngle to the current angle
         lastAngles = angles;
@@ -124,10 +149,7 @@ public class VegaScrimAuton extends LinearOpMode {
         double deltaAngle = angles.firstAngle - lastAngles.firstAngle;
 
         //because IMU returns rotation on a set of axes -180 to 180 adjust angle change to be the most logical direction
-        if (deltaAngle < -180)
-            deltaAngle += 360;
-        else if (deltaAngle > 180)
-            deltaAngle -= 360;
+        deltaAngle = limitAxes(deltaAngle);
 
         //change the overall deviation from the initial orientation
         relativeAngle += deltaAngle;
@@ -143,13 +165,10 @@ public class VegaScrimAuton extends LinearOpMode {
         Orientation angles = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
         //retrieve deviation relative to the initial final reference angle
-        double deltaAngle = initialAngle - lastAngles.firstAngle;
+        double deltaAngle = initialAngle - angles.firstAngle;
 
         //because IMU returns rotation on a set of axes -180 to 180 adjust angle change to be the most logical direction
-        if (deltaAngle < -180)
-            deltaAngle += 360;
-        else if (deltaAngle > 180)
-            deltaAngle -= 360;
+        deltaAngle = limitAxes(deltaAngle);
 
         //return orientation relative to the initial reference angle
         return deltaAngle;
@@ -158,16 +177,14 @@ public class VegaScrimAuton extends LinearOpMode {
     private void rotate(double degrees, double power) {
         double leftPower, rightPower, temppower;
         //reset reference angle and PID controllers
+        runtime.reset();
         resetAngle();
-        PD.reset();
 
-        //ramps down to zero, starting from 20 degrees
-        PD.setP(Math.abs(power/(degrees/3)));
-        PD.setD(0);
-        sleep(500);
+        MiniPID PD = new MiniPID(0.02, 0, 0.005);
+        sleep(250);
 
         //rotates until the imu returns that the robot is within a margin of error
-        while(Math.abs(degrees - getOrientation()) > 0.1 && opModeIsActive()) {
+        while(Math.abs(degrees - getOrientation()) > 0.1 && opModeIsActive() && Math.abs(degrees - getOrientation()) < 200 && runtime.seconds() < 4) {
             double orientation = getOrientation();
             temppower = PD.getOutput(orientation, degrees);
 
@@ -178,30 +195,29 @@ public class VegaScrimAuton extends LinearOpMode {
             telemetry.addData("temppower: ", temppower);
 
             //ensures the powers are within the lower power limit
-            if(Math.abs(temppower) < 0.1) {
-                temppower = Math.signum(temppower) * (0.1);
+            if(Math.abs(temppower) < 0.15) {
+                temppower = Math.signum(temppower) * 0.15;
+            }
+
+            if(Math.abs(temppower) > power) {
+                temppower *= (power/temppower);
+            }
+
+            if(orientation == 0) {
+                temppower = Math.signum(degrees) * 0.15;
             }
 
             leftPower = -temppower;
             rightPower = temppower;
-
-            //caps the power at the inputed power
-            double max = Math.max(Math.abs(leftPower), Math.abs(rightPower));
-
-            if (max > power)
-            {
-                leftPower *= (power/max);
-                rightPower *= (power/max);
-            }
 
             robot.frontRight.setPower(rightPower);
             robot.frontLeft.setPower(leftPower);
             robot.backRight.setPower(rightPower);
             robot.backLeft.setPower(leftPower);
 
-            telemetry.addData("Motor Powers: ", "%f %f", leftPower, rightPower);
-            telemetry.addData("difference: ", Math.abs(degrees - getOrientation()));
-            telemetry.update();
+            //telemetry.addData("Motor Powers: ", "%f %f", leftPower, rightPower);
+            //telemetry.addData("difference: ", Math.abs(degrees - getOrientation()));
+            //telemetry.update();
         }
         robot.frontRight.setPower(0);
         robot.frontLeft.setPower(0);
@@ -209,44 +225,37 @@ public class VegaScrimAuton extends LinearOpMode {
         robot.backLeft.setPower(0);
     }
 
-    private void moveDistance(double power, double change) {
+    private void moveTopDistance(double power, double change) {
         double leftPower, rightPower, temppower, dist;
+
         //reset reference angle and PID controllers
         resetAngle();
-        rotPID.reset();
-        PD.reset();
-
-        //ramps down to zero, starting from 30 cm
-        PD.setP(Math.abs(power/(change/3)));
-        PD.setD(0.01);
+        MiniPID PD = new MiniPID(0.02, 0, 0.005);
 
         //calculates the goal distance that should be returned
-        dist = robot.distance.getDistance(DistanceUnit.CM) - change;
+        dist = robot.topdistance.getDistance(DistanceUnit.CM) - change;
+
         //continues to drive until the distance sensor reports it's within a margin of error
-        while(Math.abs(dist - robot.distance.getDistance(DistanceUnit.CM)) > 0.1 && opModeIsActive()) {
-            double current = robot.distance.getDistance(DistanceUnit.CM);
+        while(Math.abs(dist - robot.topdistance.getDistance(DistanceUnit.CM)) > 0.1 && opModeIsActive()) {
+            double current = robot.topdistance.getDistance(DistanceUnit.CM);
             temppower = PD.getOutput(current, dist);
 
-            if(Math.abs(dist + change - current) < Math.abs(change/3)) {
-                temppower *= Math.abs((dist + change - current)/(change/3));
+            if(runtime.seconds() < 1) {
+                temppower *= power * runtime.seconds();
+            }
+
+            //caps the motor powers at a minimum
+            if(Math.abs(temppower) < 0.15) {
+                temppower *= (0.15/temppower);
+            }
+
+            //caps the motor powers at a maximum
+            if (Math.abs(temppower) > power) {
+                temppower *= (power/temppower);
             }
 
             leftPower = -temppower;
             rightPower = -temppower;
-
-            //caps the motor powers at a minimum
-            if(Math.abs(temppower) < 0.1) {
-                leftPower *= (0.1/temppower);
-                rightPower *= (0.1/temppower);
-            }
-
-            //caps the motor powers at a maximum
-            double max = Math.max(Math.abs(leftPower), Math.abs(rightPower));
-            if (max > power)
-            {
-                leftPower *= (power/max);
-                rightPower *= (power/max);
-            }
 
             robot.frontRight.setPower(rightPower);
             robot.frontLeft.setPower(leftPower);
@@ -260,19 +269,16 @@ public class VegaScrimAuton extends LinearOpMode {
     }
 
     private void moveToTop(double power, double dist) {
-        //Accurate once it moves within 30 centimeters of the object it is approaching
+        //Accurate once it moves within 120 centimeters of the object it is approaching
         double leftPower, rightPower, temppower;
+
         //reset reference angle and PID controllers
         resetAngle();
         runtime.reset();
-        rotPID.reset();
-        PD.reset();
-        //ramps down to zero starting from 30 cm
-        PD.setP(Math.abs(0.01));
-        PD.setD(0);
+        MiniPID PD = new MiniPID(0.02, 0, 0.004);
 
         //continues to move until the distance sensor returns it is within a margin of error
-        while(Math.abs(dist - robot.topdistance.getDistance(DistanceUnit.CM)) > 0.1 && opModeIsActive()) {
+        while(Math.abs(dist - robot.topdistance.getDistance(DistanceUnit.CM)) > 0.1 && opModeIsActive() && runtime.seconds() < 4) {
             double current = robot.topdistance.getDistance(DistanceUnit.CM);
             temppower = PD.getOutput(current, dist);
 
@@ -280,24 +286,18 @@ public class VegaScrimAuton extends LinearOpMode {
                 temppower *= power * runtime.seconds();
             }
 
+            if(Math.abs(temppower) < 0.15) {
+                temppower *= (0.15/temppower);
+            }
+
+            if (Math.abs(temppower) > power) {
+                temppower *= (power/temppower);
+            }
+
             leftPower = -temppower;
             rightPower = -temppower;
 
-            double min = Math.min(Math.abs(leftPower), Math.abs(rightPower));
-
-            if(min < 0.1) {
-                leftPower *= (0.1/min);
-                rightPower *= (0.1/min);
-            }
-
-            double max = Math.max(Math.abs(leftPower), Math.abs(rightPower));
-            if (max > power)
-            {
-                leftPower *= (power/max);
-                rightPower *= (power/max);
-            }
-
-            while(!isStopRequested() && robot.topdistance.getDistance(DistanceUnit.CM) > 125){
+            while(!isStopRequested() && robot.topdistance.getDistance(DistanceUnit.CM) > 120){
                 robot.frontRight.setPower(power);
                 robot.frontLeft.setPower(power);
                 robot.backRight.setPower(power);
@@ -315,19 +315,16 @@ public class VegaScrimAuton extends LinearOpMode {
     }
 
     private void moveTo(double power, double dist) {
-        //Accurate once it moves within 30 centimeters of the object it is approaching
+        //Accurate once it moves within 13 centimeters of the object it is approaching
         double leftPower, rightPower, temppower;
         //reset reference angle and PID controllers
         resetAngle();
         runtime.reset();
-        rotPID.reset();
-        PD.reset();
-        //ramps down to zero starting from 30 cm
-        PD.setP(Math.abs(0.01));
-        PD.setD(0);
+
+        MiniPID PD = new MiniPID(0.02, 0, 0.004);
 
         //continues to move until the distance sensor returns it is within a margin of error
-        while(Math.abs(dist - robot.distance.getDistance(DistanceUnit.CM)) > 0.1 && opModeIsActive()) {
+        while(Math.abs(dist - robot.distance.getDistance(DistanceUnit.CM)) > 0.1 && opModeIsActive() && runtime.seconds() < 4) {
             double current = robot.distance.getDistance(DistanceUnit.CM);
             temppower = PD.getOutput(current, dist);
 
@@ -335,22 +332,16 @@ public class VegaScrimAuton extends LinearOpMode {
                 temppower *= power * runtime.seconds();
             }
 
+            if(Math.abs(temppower) < 0.15) {
+                temppower *= (0.15/temppower);
+            }
+
+            if (Math.abs(temppower) > power) {
+                temppower *= (power/temppower);
+            }
+
             leftPower = -temppower;
             rightPower = -temppower;
-
-            double min = Math.min(Math.abs(leftPower), Math.abs(rightPower));
-
-            if(min < 0.1) {
-                leftPower *= (0.1/min);
-                rightPower *= (0.1/min);
-            }
-
-            double max = Math.max(Math.abs(leftPower), Math.abs(rightPower));
-            if (max > power)
-            {
-                leftPower *= (power/max);
-                rightPower *= (power/max);
-            }
 
             while(!isStopRequested() && robot.distance.getDistance(DistanceUnit.CM) > 13){
                 robot.frontRight.setPower(power);
@@ -373,20 +364,11 @@ public class VegaScrimAuton extends LinearOpMode {
         double leftPower, rightPower, adjustment;
         runtime.reset();
         resetAngle();
-        rotPID.reset();
 
-        while(runtime.seconds() < time && opModeIsActive()) {
-            adjustment = rotPID.getOutput(getOrientation(), 0);
+        while(runtime.milliseconds() < time && opModeIsActive()) {
 
-            leftPower = (power - (adjustment * direction)) * direction;
-            rightPower = (power + (adjustment * direction)) * direction;
-
-            double max = Math.max(Math.abs(leftPower), Math.abs(rightPower));
-            if (max > power)
-            {
-                leftPower *= (power/max);
-                rightPower *= (power/max);
-            }
+            leftPower = power * direction;
+            rightPower = power * direction;
 
             robot.frontRight.setPower(rightPower);
             robot.frontLeft.setPower(leftPower);
@@ -403,27 +385,15 @@ public class VegaScrimAuton extends LinearOpMode {
         double FR, FL, BR, BL, adjustment;
         runtime.reset();
         resetAngle();
-        rotPID.reset();
-        while(runtime.seconds() < time && opModeIsActive()) {
-            adjustment = rotPID.getOutput(getOrientation(), 0);
-            telemetry.addData("adjustment", adjustment);
 
-            FR = -(power - adjustment * direction) * direction;
-            FL = (power - adjustment * direction) * direction;
-            BR = (power + adjustment * direction) * direction;
-            BL = -(power + adjustment * direction) * direction;
+        while(runtime.milliseconds() < time && opModeIsActive()) {
+            FR = -power * direction;
+            FL = power * direction;
+            BR = power * direction;
+            BL = -power * direction;
 
-            double maxf = Math.max(Math.abs(FR), Math.abs(FL));
-            double maxb = Math.max(Math.abs(BR), Math.abs(BL));
-            double max = Math.max(maxf, maxb);
-
-            FR *= (power/max);
-            FL *= (power/max);
-            BR *= (power/max);
-            BL *= (power/max);
-
-            telemetry.addData("Motor Powers: ", "%f, %f, %f, %f", FL, BL, FR, FL);
-            telemetry.update();
+            //telemetry.addData("Motor Powers: ", "%f, %f, %f, %f", FL, BL, FR, FL);
+            //telemetry.update();
 
             robot.frontRight.setPower(FR);
             robot.frontLeft.setPower(FL);
@@ -440,25 +410,16 @@ public class VegaScrimAuton extends LinearOpMode {
         double FR, FL, BR, BL, adjustment;
         runtime.reset();
         resetAngle();
-        rotPID.reset();
 
-        while(!checkCol().equals("Yellow") && opModeIsActive()) {
+        while(!checkCol() && opModeIsActive() && !isStopRequested()) {
 
             FR = -power * direction;
             FL = power * direction;
             BR = power * direction;
             BL = -power * direction;
 
-            double maxf = Math.max(Math.abs(FR), Math.abs(FL));
-            double maxb = Math.max(Math.abs(BR), Math.abs(BL));
-            double max = Math.max(maxf, maxb);
-
-            FR *= (power/max);
-            FL *= (power/max);
-            BR *= (power/max);
-            BL *= (power/max);
-
-            telemetry.update();
+            //telemetry.addData("Motor Powers: ", "%f, %f, %f, %f", FL, BL, FR, FL);
+            //telemetry.update();
 
             robot.frontRight.setPower(FR);
             robot.frontLeft.setPower(FL);
@@ -469,56 +430,22 @@ public class VegaScrimAuton extends LinearOpMode {
         robot.frontLeft.setPower(0);
         robot.backRight.setPower(0);
         robot.backLeft.setPower(0);
-        sleep(400);
-
-        while(!checkCol().equals("Black") && opModeIsActive()) {
-
-            FR = power * direction;
-            FL = -power * direction;
-            BR = -power * direction;
-            BL = power * direction;
-
-            double maxf = Math.max(Math.abs(FR), Math.abs(FL));
-            double maxb = Math.max(Math.abs(BR), Math.abs(BL));
-            double max = Math.max(maxf, maxb);
-
-            FR *= (power/max);
-            FL *= (power/max);
-            BR *= (power/max);
-            BL *= (power/max);
-
-            telemetry.addData("Motor Powers: ", "%f, %f, %f, %f", FL, BL, FR, FL);
-            telemetry.update();
-
-            robot.frontRight.setPower(FR);
-            robot.frontLeft.setPower(FL);
-            robot.backRight.setPower(BR);
-            robot.backLeft.setPower(BL);
-        }
-        robot.frontRight.setPower(0);
-        robot.frontLeft.setPower(0);
-        robot.backRight.setPower(0);
-        robot.backLeft.setPower(0);
-        sleep(400);
-
+        sleep(250);
     }
 
-    private String checkCol() {
-        if((robot.colLeft.red() < 70)) {
-            return "Left";
+    private boolean checkCol() {
+        boolean i = false;
+        if((robot.colLeft.red() < 70) && robot.colRight.red() < 70) {
+            i = true;
         }
-        else if((robot.colRight.red() < 70)) {
-            return "Right";
-        }
-        else return "Yellow";
+        return i;
     }
 
-    private void grab() {
-        robot.gripper.setTargetPosition(280);
-        robot.lift.setTargetPosition(200);
-    }
-
-    private double ticksToCM(double TICKS_PER_REV, double DIAM, double ticks) {
-        return DIAM * Math.PI * (ticks / TICKS_PER_REV);
+    private double limitAxes(double orientation) {
+        if (orientation < -180)
+            orientation += 360;
+        else if (orientation > 180)
+            orientation -= 360;
+        return orientation;
     }
 }

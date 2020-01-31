@@ -90,6 +90,7 @@ public class VegaHardware
         lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         lift.setTargetPosition(0);
         lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        lift.setDirection(DcMotor.Direction.REVERSE);
 
         gripper = hwMap.get(DcMotor.class, "gripper");
 

@@ -29,41 +29,16 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
-import com.qualcomm.robotcore.util.ThreadPool;
 import com.stormbots.MiniPID;
 
-import java.util.concurrent.ExecutorService;
-
-import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
-import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-
-import static android.os.SystemClock.sleep;
-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
-import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
 @Autonomous(name="Red Side Skystones", group="queenYash")
 public class SkystoneRedAuton extends LinearOpMode {
@@ -77,11 +52,8 @@ public class SkystoneRedAuton extends LinearOpMode {
     private Orientation lastAngles = new Orientation();
     private double relativeAngle, globalAngle, initialAngle;
     //endregion
+
     int pos = 0;
-    private MiniPID rotPID = new MiniPID(0.05, 0.0056, 0.0055);
-
-    private MiniPID PD = new MiniPID(0.01, 0 , 0);
-
     @Override
     public void runOpMode() {
         /* Initialize the drive system variables.
@@ -89,145 +61,85 @@ public class SkystoneRedAuton extends LinearOpMode {
          */
         robot.init(hardwareMap);
 
-        while (!isStarted()) {
-        }
+        while (!isStarted()) {}
+
         runtime.reset();
         runtime.startTime();
-        moveTo(.3, 6);
+        moveTo(.3, 13);
 
-        sleep(500);
+        sleep(250);
 
         if(checkCol())
         {
-            //grab
-            rotate(-90, .3);
+            grab();
+            rotate(-90, .8);
         }
         else
         {
             pos ++;
-            strafeCol(1, .2);
+            strafeCol(1, .3);
         }
 
         sleep(500);
 
         if(pos == 1 && checkCol())
         {
-            //grab
-            rotate(-90, .3);
+            grab();
+            rotate(-90, .8);
         }
 
         else
         {
             pos ++;
-            strafeCol(1, .2);
+            strafeCol(1, .3);
 
         }
 
-        sleep(500);
+        sleep(250);
 
         if(pos == 2)
         {
 
-            //Grab
-            rotate(90, .3);
+            grab();
+            rotate(90, .8);
 
         }
     }
 
-    public void frontLeft(int goal)
-    {
+    private void grab() {
         runtime.reset();
-        runtime.startTime();
-        robot.frontRight.setPower(1);
-        robot.backRight.setPower(1);
-        robot.backLeft.setPower(1);
-        robot.frontLeft.setPower(.4);
-        while(runtime.milliseconds() < goal && !isStopRequested()){
-
-        }
-        robot.frontRight.setPower(0);
-        robot.backRight.setPower(0);
-        robot.backLeft.setPower(0);
-        robot.frontLeft.setPower(0);
-        runtime.reset();
-        runtime.startTime();
-    }
-    public void unlatch()
-    {
-        runtime.reset();
-        runtime.startTime();
-        while (!isStopRequested() && runtime.milliseconds() < 600){
-            robot.latch.setPower(-.4);
-        }
-        robot.latch.setPower(0);
-
-    }
-    public void latch()
-    {
-        runtime.reset();
-        runtime.startTime();
-        while (!isStopRequested() && runtime.milliseconds() < 600){
-            robot.latch.setPower(.4);
+        while (!isStopRequested() && runtime.milliseconds() < 500){
+            robot.latch.setPower(-0.2);
         }
         robot.latch.setPower(0);
     }
 
-    public void frontRight(int goal)
-    {
+    private void release() {
         runtime.reset();
-        runtime.startTime();
-        robot.frontLeft.setPower(.8);
-        robot.backLeft.setPower(.8);
-        robot.backRight.setPower(.5);
-        robot.frontRight.setPower(.5);
-        while(!isStopRequested() && runtime.milliseconds() < goal){
-
+        while (!isStopRequested() && runtime.milliseconds() < 500){
+            robot.latch.setPower(0.2);
         }
-        robot.frontLeft.setPower(0);
-        robot.backLeft.setPower(0);
-        robot.backRight.setPower(0);
-        robot.backLeft.setPower(0);
-        runtime.reset();
-        runtime.startTime();
+        robot.latch.setPower(0);
     }
 
-    //proportional power decrease to eliminate overshoot on rotations and movements
-    public double PControl(double power, double goal, double current, double threshold, double minimum)
-    {
-        double ratio, temppower;
-        double difference = goal - current;
-        if (Math.abs(difference) < threshold * Math.signum(goal)) {
-            ratio = difference / threshold;
-            temppower = power * ratio;
+    public void unlatch() {
+        runtime.reset();
+        while (!isStopRequested() && runtime.milliseconds() < 400){
+            robot.latch.setPower(-.8);
         }
-        else temppower = power;
+        robot.latch.setPower(0);
 
-        temppower = Range.clip(temppower, minimum, 1);
-        return temppower;
     }
 
-    public void forward(double power, double goal)
-    {
+    public void latch(){
         runtime.reset();
-        runtime.startTime();
-        robot.frontRight.setPower(power);
-        robot.frontLeft.setPower(power);
-        robot.backRight.setPower(power);
-        robot.backLeft.setPower(power);
-        while(!isStopRequested() && runtime.milliseconds() < goal){
-            telemetry.addData("+++", 7);
-            telemetry.update();
+        while (!isStopRequested() && runtime.milliseconds() < 400){
+            robot.latch.setPower(.8);
         }
-        robot.frontRight.setPower(0);
-        robot.frontLeft.setPower(0);
-        robot.backRight.setPower(0);
-        robot.backLeft.setPower(0);
-        runtime.reset();
-        runtime.startTime();
+        robot.latch.setPower(0);
     }
 
-    private void resetAngle()
-    {
+    private void resetAngle() {
         //retrieve current orientation
         lastAngles = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
@@ -236,8 +148,7 @@ public class SkystoneRedAuton extends LinearOpMode {
         globalAngle = lastAngles.firstAngle;
     }
 
-    private double getOrientation()
-    {
+    private double getOrientation() {
         //retrieve current imu orientation information
         Orientation angles = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
@@ -245,10 +156,7 @@ public class SkystoneRedAuton extends LinearOpMode {
         double deltaAngle = angles.firstAngle - globalAngle;
 
         //because IMU returns rotation on a set of axes -180 to 180 adjust angle change to be the most logical direction
-        if (deltaAngle < -180)
-            deltaAngle += 360;
-        else if (deltaAngle > 180)
-            deltaAngle -= 360;
+        deltaAngle = limitAxes(deltaAngle);
 
         //set lastAngle to the current angle
         lastAngles = angles;
@@ -265,10 +173,7 @@ public class SkystoneRedAuton extends LinearOpMode {
         double deltaAngle = angles.firstAngle - lastAngles.firstAngle;
 
         //because IMU returns rotation on a set of axes -180 to 180 adjust angle change to be the most logical direction
-        if (deltaAngle < -180)
-            deltaAngle += 360;
-        else if (deltaAngle > 180)
-            deltaAngle -= 360;
+        deltaAngle = limitAxes(deltaAngle);
 
         //change the overall deviation from the initial orientation
         relativeAngle += deltaAngle;
@@ -279,38 +184,31 @@ public class SkystoneRedAuton extends LinearOpMode {
         return relativeAngle;
     }
 
-    private double getAbsolute()
-    {
+    private double getAbsolute() {
         //retrieve current imu orientation information
         Orientation angles = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
         //retrieve deviation relative to the initial final reference angle
-        double deltaAngle = initialAngle - lastAngles.firstAngle;
+        double deltaAngle = initialAngle - angles.firstAngle;
 
         //because IMU returns rotation on a set of axes -180 to 180 adjust angle change to be the most logical direction
-        if (deltaAngle < -180)
-            deltaAngle += 360;
-        else if (deltaAngle > 180)
-            deltaAngle -= 360;
+        deltaAngle = limitAxes(deltaAngle);
 
         //return orientation relative to the initial reference angle
         return deltaAngle;
     }
 
-    private void rotate(double degrees, double power)
-    {
+    private void rotate(double degrees, double power) {
         double leftPower, rightPower, temppower;
         //reset reference angle and PID controllers
+        runtime.reset();
         resetAngle();
-        PD.reset();
 
-        //ramps down to zero, starting from 20 degrees
-        PD.setP(Math.abs(power/(degrees/3)));
-        PD.setD(0);
-        sleep(500);
+        MiniPID PD = new MiniPID(0.02, 0, 0.005);
+        sleep(250);
 
         //rotates until the imu returns that the robot is within a margin of error
-        while(Math.abs(degrees - getOrientation()) > 0.1 && opModeIsActive() && Math.abs(degrees - getOrientation()) < 200) {
+        while(Math.abs(degrees - getOrientation()) > 0.1 && opModeIsActive() && Math.abs(degrees - getOrientation()) < 200 && runtime.seconds() < 4) {
             double orientation = getOrientation();
             temppower = PD.getOutput(orientation, degrees);
 
@@ -321,36 +219,29 @@ public class SkystoneRedAuton extends LinearOpMode {
             telemetry.addData("temppower: ", temppower);
 
             //ensures the powers are within the lower power limit
-            if(Math.abs(temppower) < 0.1) {
-                temppower = Math.signum(temppower) * (0.1);
+            if(Math.abs(temppower) < 0.15) {
+                temppower = Math.signum(temppower) * 0.15;
+            }
+
+            if(Math.abs(temppower) > power) {
+                temppower *= (power/temppower);
+            }
+
+            if(orientation == 0) {
+                temppower = Math.signum(degrees) * 0.15;
             }
 
             leftPower = -temppower;
             rightPower = temppower;
-
-            //caps the power at the inputed power
-            double max = Math.max(Math.abs(leftPower), Math.abs(rightPower));
-            double min = Math.min(Math.abs(leftPower), Math.abs(rightPower));
-
-            if(min < 0.14) {
-                leftPower *= (0.14/min);
-                rightPower *= (0.14/min);
-            }
-
-            if (max > power)
-            {
-                leftPower *= (power/max);
-                rightPower *= (power/max);
-            }
 
             robot.frontRight.setPower(rightPower);
             robot.frontLeft.setPower(leftPower);
             robot.backRight.setPower(rightPower);
             robot.backLeft.setPower(leftPower);
 
-            telemetry.addData("Motor Powers: ", "%f %f", leftPower, rightPower);
-            telemetry.addData("difference: ", Math.abs(degrees - getOrientation()));
-            telemetry.update();
+            //telemetry.addData("Motor Powers: ", "%f %f", leftPower, rightPower);
+            //telemetry.addData("difference: ", Math.abs(degrees - getOrientation()));
+            //telemetry.update();
         }
         robot.frontRight.setPower(0);
         robot.frontLeft.setPower(0);
@@ -358,45 +249,84 @@ public class SkystoneRedAuton extends LinearOpMode {
         robot.backLeft.setPower(0);
     }
 
-    private void moveDistance(double power, double change) {
+    private void moveTopDistance(double power, double change) {
         double leftPower, rightPower, temppower, dist;
+
         //reset reference angle and PID controllers
         resetAngle();
-        rotPID.reset();
-        PD.reset();
-
-        //ramps down to zero, starting from 30 cm
-        PD.setP(Math.abs(power/(change/3)));
-        PD.setD(0.01);
+        MiniPID PD = new MiniPID(0.02, 0, 0.005);
 
         //calculates the goal distance that should be returned
-        dist = robot.distance.getDistance(DistanceUnit.CM) - change;
+        dist = robot.topdistance.getDistance(DistanceUnit.CM) - change;
+
         //continues to drive until the distance sensor reports it's within a margin of error
-        while(Math.abs(dist - robot.distance.getDistance(DistanceUnit.CM)) > 0.1 && opModeIsActive()) {
-            double current = robot.distance.getDistance(DistanceUnit.CM);
+        while(Math.abs(dist - robot.topdistance.getDistance(DistanceUnit.CM)) > 0.1 && opModeIsActive()) {
+            double current = robot.topdistance.getDistance(DistanceUnit.CM);
             temppower = PD.getOutput(current, dist);
 
-            if(Math.abs(dist + change - current) < Math.abs(change/3)) {
-                temppower *= Math.abs((dist + change - current)/(change/3));
+            if(runtime.seconds() < 1) {
+                temppower *= power * runtime.seconds();
+            }
+
+            //caps the motor powers at a minimum
+            if(Math.abs(temppower) < 0.15) {
+                temppower *= (0.15/temppower);
+            }
+
+            //caps the motor powers at a maximum
+            if (Math.abs(temppower) > power) {
+                temppower *= (power/temppower);
             }
 
             leftPower = -temppower;
             rightPower = -temppower;
 
-            //caps the motor powers at a minimum
-            if(Math.abs(temppower) < 0.1) {
-                leftPower *= (0.1/temppower);
-                rightPower *= (0.1/temppower);
+            robot.frontRight.setPower(rightPower);
+            robot.frontLeft.setPower(leftPower);
+            robot.backRight.setPower(rightPower);
+            robot.backLeft.setPower(leftPower);
+        }
+        robot.frontRight.setPower(0);
+        robot.frontLeft.setPower(0);
+        robot.backRight.setPower(0);
+        robot.backLeft.setPower(0);
+    }
+
+    private void moveToTop(double power, double dist) {
+        //Accurate once it moves within 120 centimeters of the object it is approaching
+        double leftPower, rightPower, temppower;
+
+        //reset reference angle and PID controllers
+        resetAngle();
+        runtime.reset();
+        MiniPID PD = new MiniPID(0.02, 0, 0.004);
+
+        //continues to move until the distance sensor returns it is within a margin of error
+        while(Math.abs(dist - robot.topdistance.getDistance(DistanceUnit.CM)) > 0.1 && opModeIsActive() && runtime.seconds() < 4) {
+            double current = robot.topdistance.getDistance(DistanceUnit.CM);
+            temppower = PD.getOutput(current, dist);
+
+            if(runtime.seconds() < 1) {
+                temppower *= power * runtime.seconds();
             }
 
-            //caps the motor powers at a maximum
-            double max = Math.max(Math.abs(leftPower), Math.abs(rightPower));
-            if (max > power)
-            {
-                leftPower *= (power/max);
-                rightPower *= (power/max);
+            if(Math.abs(temppower) < 0.15) {
+                temppower *= (0.15/temppower);
             }
 
+            if (Math.abs(temppower) > power) {
+                temppower *= (power/temppower);
+            }
+
+            leftPower = -temppower;
+            rightPower = -temppower;
+
+            while(!isStopRequested() && robot.topdistance.getDistance(DistanceUnit.CM) > 120){
+                robot.frontRight.setPower(power);
+                robot.frontLeft.setPower(power);
+                robot.backRight.setPower(power);
+                robot.backLeft.setPower(power);
+            }
             robot.frontRight.setPower(rightPower);
             robot.frontLeft.setPower(leftPower);
             robot.backRight.setPower(rightPower);
@@ -409,21 +339,16 @@ public class SkystoneRedAuton extends LinearOpMode {
     }
 
     private void moveTo(double power, double dist) {
-        //Accurate once it moves within 30 centimeters of the object it is approaching
+        //Accurate once it moves within 13 centimeters of the object it is approaching
         double leftPower, rightPower, temppower;
         //reset reference angle and PID controllers
         resetAngle();
         runtime.reset();
-        rotPID.reset();
-        PD.reset();
-        //ramps down to zero starting from 30 cm
-        PD.setP(Math.abs(0.01));
-        PD.setD(0);
 
-        double initial = robot.distance.getDistance(DistanceUnit.CM);
+        MiniPID PD = new MiniPID(0.02, 0, 0.004);
 
         //continues to move until the distance sensor returns it is within a margin of error
-        while(Math.abs(dist - robot.distance.getDistance(DistanceUnit.CM)) > 0.1 && opModeIsActive()) {
+        while(Math.abs(dist - robot.distance.getDistance(DistanceUnit.CM)) > 0.1 && opModeIsActive() && runtime.seconds() < 4) {
             double current = robot.distance.getDistance(DistanceUnit.CM);
             temppower = PD.getOutput(current, dist);
 
@@ -431,22 +356,16 @@ public class SkystoneRedAuton extends LinearOpMode {
                 temppower *= power * runtime.seconds();
             }
 
+            if(Math.abs(temppower) < 0.15) {
+                temppower *= (0.15/temppower);
+            }
+
+            if (Math.abs(temppower) > power) {
+                temppower *= (power/temppower);
+            }
+
             leftPower = -temppower;
             rightPower = -temppower;
-
-            double min = Math.min(Math.abs(leftPower), Math.abs(rightPower));
-
-            if(min < 0.1) {
-                leftPower *= (0.1/min);
-                rightPower *= (0.1/min);
-            }
-
-            double max = Math.max(Math.abs(leftPower), Math.abs(rightPower));
-            if (max > power)
-            {
-                leftPower *= (power/max);
-                rightPower *= (power/max);
-            }
 
             while(!isStopRequested() && robot.distance.getDistance(DistanceUnit.CM) > 13){
                 robot.frontRight.setPower(power);
@@ -469,20 +388,11 @@ public class SkystoneRedAuton extends LinearOpMode {
         double leftPower, rightPower, adjustment;
         runtime.reset();
         resetAngle();
-        rotPID.reset();
 
         while(runtime.milliseconds() < time && opModeIsActive()) {
-            adjustment = rotPID.getOutput(getOrientation(), 0);
 
-            leftPower = (power - (adjustment * direction)) * direction;
-            rightPower = (power + (adjustment * direction)) * direction;
-
-            double max = Math.max(Math.abs(leftPower), Math.abs(rightPower));
-            if (max > power)
-            {
-                leftPower *= (power/max);
-                rightPower *= (power/max);
-            }
+            leftPower = power * direction;
+            rightPower = power * direction;
 
             robot.frontRight.setPower(rightPower);
             robot.frontLeft.setPower(leftPower);
@@ -499,27 +409,15 @@ public class SkystoneRedAuton extends LinearOpMode {
         double FR, FL, BR, BL, adjustment;
         runtime.reset();
         resetAngle();
-        rotPID.reset();
+
         while(runtime.milliseconds() < time && opModeIsActive()) {
-            adjustment = rotPID.getOutput(getOrientation(), 0);
-            telemetry.addData("adjustment", adjustment);
+            FR = -power * direction;
+            FL = power * direction;
+            BR = power * direction;
+            BL = -power * direction;
 
-            FR = -(power - adjustment * direction) * direction;
-            FL = (power - adjustment * direction) * direction;
-            BR = (power + adjustment * direction) * direction;
-            BL = -(power + adjustment * direction) * direction;
-
-            double maxf = Math.max(Math.abs(FR), Math.abs(FL));
-            double maxb = Math.max(Math.abs(BR), Math.abs(BL));
-            double max = Math.max(maxf, maxb);
-
-            FR *= (power/max);
-            FL *= (power/max);
-            BR *= (power/max);
-            BL *= (power/max);
-
-            telemetry.addData("Motor Powers: ", "%f, %f, %f, %f", FL, BL, FR, FL);
-            telemetry.update();
+            //telemetry.addData("Motor Powers: ", "%f, %f, %f, %f", FL, BL, FR, FL);
+            //telemetry.update();
 
             robot.frontRight.setPower(FR);
             robot.frontLeft.setPower(FL);
@@ -536,28 +434,16 @@ public class SkystoneRedAuton extends LinearOpMode {
         double FR, FL, BR, BL, adjustment;
         runtime.reset();
         resetAngle();
-        rotPID.reset();
 
-        while(!checkCol() && opModeIsActive()) {
-            adjustment = rotPID.getOutput(getOrientation(), 0);
-            telemetry.addData("adjustment", adjustment);
+        while(!checkCol() && opModeIsActive() && !isStopRequested()) {
 
-            FR = -(power - adjustment * direction) * direction;
-            FL = (power - adjustment * direction) * direction;
-            BR = (power + adjustment * direction) * direction;
-            BL = -(power + adjustment * direction) * direction;
+            FR = -power * direction;
+            FL = power * direction;
+            BR = power * direction;
+            BL = -power * direction;
 
-            double maxf = Math.max(Math.abs(FR), Math.abs(FL));
-            double maxb = Math.max(Math.abs(BR), Math.abs(BL));
-            double max = Math.max(maxf, maxb);
-
-            FR *= (power/max);
-            FL *= (power/max);
-            BR *= (power/max);
-            BL *= (power/max);
-
-            telemetry.addData("Motor Powers: ", "%f, %f, %f, %f", FL, BL, FR, FL);
-            telemetry.update();
+            //telemetry.addData("Motor Powers: ", "%f, %f, %f, %f", FL, BL, FR, FL);
+            //telemetry.update();
 
             robot.frontRight.setPower(FR);
             robot.frontLeft.setPower(FL);
@@ -568,7 +454,7 @@ public class SkystoneRedAuton extends LinearOpMode {
         robot.frontLeft.setPower(0);
         robot.backRight.setPower(0);
         robot.backLeft.setPower(0);
-        sleep(400);
+        sleep(250);
     }
 
     private boolean checkCol() {
@@ -579,26 +465,11 @@ public class SkystoneRedAuton extends LinearOpMode {
         return i;
     }
 
-    private int inchestoTicks(double TICKS_PER_REV, double DIAM, double inches) {
-        return (int)Math.round(((inches / DIAM * Math.PI) * TICKS_PER_REV));
-    }
-
-    private void straighttoPos(double inches, double power) {
-        int ticks = inchestoTicks(1120, 4, inches);
-        robot.frontLeft.setTargetPosition(ticks);
-        robot.frontLeft.setPower(power);
-
-        while(robot.frontLeft.isBusy()) {
-            double temppower = power * ((ticks - robot.frontLeft.getCurrentPosition()) / ticks);
-            Range.clip(temppower, 0.15, power);
-            robot.backLeft.setPower(temppower);
-            robot.backRight.setPower(temppower);
-            robot.frontLeft.setPower(temppower);
-            robot.frontRight.setPower(temppower);
-        }
-        robot.backLeft.setPower(0);
-        robot.backRight.setPower(0);
-        robot.frontLeft.setPower(0);
-        robot.frontRight.setPower(0);
+    private double limitAxes(double orientation) {
+        if (orientation < -180)
+            orientation += 360;
+        else if (orientation > 180)
+            orientation -= 360;
+        return orientation;
     }
 }

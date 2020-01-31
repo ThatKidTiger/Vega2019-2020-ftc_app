@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.ftccommon.SoundPlayer;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.stormbots.MiniPID;
@@ -10,7 +10,6 @@ import com.stormbots.MiniPID;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 @TeleOp(name="VegaOpMode", group="VegaBot")
@@ -28,11 +27,14 @@ public class VegaOpMode extends OpMode
     boolean xChange = false;
     boolean open = true;
     boolean aChange = false;
-    boolean foundation = false;
+    boolean slow = false;
     boolean yChange = false;
     boolean downChange = false;
     boolean upChange = false;
     int liftTarget = 0;
+
+    int opened;
+    int closed;
 
     MiniPID liftPID = new MiniPID(0.002, 0, 0.0);
 
@@ -43,11 +45,8 @@ public class VegaOpMode extends OpMode
         robot.imu.readCalibrationData();
         telemetry.addData("Status", "Initialized");
 
-        robot.lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        robot.lift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        robot.lift.setDirection(DcMotor.Direction.REVERSE);
-
+        int opened = hardwareMap.appContext.getResources().getIdentifier("open", "raw", hardwareMap.appContext.getPackageName());
+        int closed = hardwareMap.appContext.getResources().getIdentifier("closed", "raw", hardwareMap.appContext.getPackageName());
     }
 
     @Override
@@ -57,7 +56,7 @@ public class VegaOpMode extends OpMode
 
     @Override
     public void loop() {
-        runtime.reset();
+        //runtime.reset();
 
         double leftPower;
         double rightPower;
@@ -85,7 +84,7 @@ public class VegaOpMode extends OpMode
             robot.backRight.setPower(strafeTwo);
             robot.frontLeft.setPower(strafeTwo);
             robot.frontRight.setPower(-strafeTwo);
-        } else if (foundation) {
+        } else if (slow) {
             //player one slow drive foundation
             if(Math.abs(gamepad1.right_stick_x) < 0.1) {
                 leftPower *= 0.35;
@@ -109,7 +108,7 @@ public class VegaOpMode extends OpMode
             robot.frontLeft.setPower(leftPower);
             robot.frontRight.setPower(rightPower);
         } else {
-            if (Math.abs(rightY) < .15) {
+            if (Math.abs(rightY) < .18) {
                 //strafe if gamepad1 right stick is in the horizontal zone
                 robot.backLeft.setPower(-strafe);
                 robot.backRight.setPower(strafe);
@@ -156,10 +155,10 @@ public class VegaOpMode extends OpMode
         }
 
         if(gamepad2.right_bumper) {
-            robot.gripper.setPower(-0.30);
+            robot.gripper.setPower(-0.2);
         }
         else if(gamepad2.left_bumper) {
-            robot.gripper.setPower(0.30);
+            robot.gripper.setPower(0.2);
         }
         else {
             robot.gripper.setPower(0);
@@ -183,6 +182,12 @@ public class VegaOpMode extends OpMode
 
         if(gamepad2.a && !aChange) {
             aChange = true;
+            if(open) {
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, closed);
+            }
+            else {
+                SoundPlayer.getInstance().startPlaying(hardwareMap.appContext, opened);
+            }
             open = !open;
         }
         else if(!gamepad2.a) {
@@ -191,21 +196,17 @@ public class VegaOpMode extends OpMode
 
         if(!open) {
             robot.gripper.setPower(-0.1);
-            telemetry.addLine("Closed");
-        }
-        else {
-            telemetry.addLine("Open");
         }
 
         if (gamepad1.y && !yChange) {
             yChange = true;
-            foundation = !foundation;
+            slow = !slow;
         }
         else if(!gamepad2.y) {
             yChange = false;
         }
 
-        telemetry.addData("Time: ", runtime.milliseconds());
+        /*telemetry.addData("Time: ", runtime.milliseconds());
         telemetry.addData("IMU Calib", robot.imu.getCalibrationStatus().toString());
         telemetry.addData("Distance(cm): ", "%f", robot.distance.getDistance(DistanceUnit.CM));
         telemetry.addData("Top Distance(cm): ", "%f", robot.topdistance.getDistance(DistanceUnit.CM));
@@ -214,7 +215,7 @@ public class VegaOpMode extends OpMode
         telemetry.addData("Right R,G,B,A: ", "%d, %d, %d, %d", robot.colRight.red(), robot.colRight.green(), robot.colRight.blue(), robot.colRight.alpha());
         telemetry.addData("Latch: ", "%d %d", robot.latch.getCurrentPosition(), robot.latch.getTargetPosition());
         telemetry.addData("Lift: ","%d, %d" , robot.lift.getCurrentPosition(), robot.lift.getTargetPosition());
-        telemetry.addData("Lift Power: ", gamepad2.right_trigger - gamepad2.left_trigger);
+        telemetry.addData("Lift Power: ", gamepad2.right_trigger - gamepad2.left_trigger);*/
     }
 
     @Override
