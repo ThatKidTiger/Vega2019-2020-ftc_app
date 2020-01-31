@@ -68,38 +68,23 @@ public class SkystoneBlueAuton extends LinearOpMode {
         runtime.startTime();
         moveTo(.3, 13);
         sleep(250);
-        if(checkCol())
-        {
-            grab();
-            rotate(90, .8);
-        }
-        else
-        {
-            pos ++;
-            strafeCol(-1, .3);
-        }
 
-        sleep(250);
-
-        if(pos == 1 && checkCol())
-        {
-            grab();
-            rotate(90, .8);
-        }
-        else
-        {
-            pos ++;
-            strafeCol(-1, .3);
-
-        }
-
-        if(pos == 2)
-        {
-            grab();
-            rotate(90, .8);
-
-        }
-
+        strafeCol(1, 0.3);
+        grab();
+        moveTime(-1, 0.5, 200);
+        rotate(90, 0.8);
+        moveToTop(0.8, 120);
+        release();
+        rotate(180, 0.8);
+        moveToTop(0.8, 15);
+        rotate(90, 0.8);
+        strafeCol(-1, 0.3);
+        grab();
+        moveTime(-1, 0.5, 200);
+        rotate(90, 0.8);
+        moveToTop(0.8, 120);
+        release();
+        moveTime(-1, 0.5, 1000);
     }
 
     private void grab() {
