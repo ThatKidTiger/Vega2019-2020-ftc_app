@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import static java.lang.Math.*;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import java.util.Map;
@@ -19,7 +20,7 @@ public class MecanumDrive extends Subsystem{
 		1			2
 	 */
 	private DcMotor[] motors = new DcMotor[4];
-	private String[] motorNames = {"frontLeft, backLeft, backRight, frontRight"};
+	private String[] motorNames = {"frontLeft", "backLeft", "backRight", "frontRight"};
 
 	/*
 	Todo: Document
@@ -30,10 +31,17 @@ public class MecanumDrive extends Subsystem{
 		return null;
 	}
 
-	public MecanumDrive(HardwareMap map) {
+	public MecanumDrive() {
+
+	}
+
+	public void init(HardwareMap hwMap) {
 		for(int i = 0; i < 4; i++) {
-			motors[i] = map.get(DcMotor.class, motorNames[i]);
+			motors[i] = hwMap.get(DcMotor.class, motorNames[i]);
 		}
+
+		motors[2].setDirection(DcMotorSimple.Direction.REVERSE);
+		motors[3].setDirection(DcMotorSimple.Direction.REVERSE);
 	}
 
 	public void setMotorPowers(double[] powers) {

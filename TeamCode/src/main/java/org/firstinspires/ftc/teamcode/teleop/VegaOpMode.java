@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.teleop;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -23,6 +24,7 @@ import org.openftc.easyopencv.OpenCvTrackerApiPipeline;
 
 import static android.os.SystemClock.sleep;
 
+@Disabled
 @TeleOp(name="VegaOpMode", group="VegaBot")
 public class VegaOpMode extends OpMode
 {

@@ -15,6 +15,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.stream.CameraStreamSource;
 import org.firstinspires.ftc.teamcode.hardware.BotConstants.DIST_CONSTANTS;
 import org.firstinspires.ftc.teamcode.hardware.BotConstants.IMU_CONSTANTS;
+import org.firstinspires.ftc.teamcode.hardware.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.GamepadController;
+import org.firstinspires.ftc.teamcode.subsystems.MecanumDrive;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvInternalCamera;
@@ -27,13 +30,14 @@ public class VegaOpMode extends OpMode
 {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    VegaHardware robot = new VegaHardware();
+    /*
+    Todo: Integrate all subsystems into the robot class
+     */
+    //Robot robot = new Robot();
+    private MecanumDrive drive = new MecanumDrive();
 
     Orientation lastAngles = new Orientation();
     double relativeAngle, globalAngle;
-
-    //cv fields
-    OpenCvInternalCamera phoneCam;
 
     //boolean downChange = false;
     //boolean upChange = false;
@@ -42,76 +46,45 @@ public class VegaOpMode extends OpMode
     int opened;
     int closed;
 
-    FtcDashboard dashboard = FtcDashboard.getInstance();
-    TelemetryPacket packet = new TelemetryPacket();
+    private FtcDashboard dashboard = FtcDashboard.getInstance();
+    private TelemetryPacket packet = new TelemetryPacket();
 
     MiniPID liftPID = new MiniPID(0.002, 0, 0.0);
+    private GamepadController control;
 
     @Override
     public void init() {
         runtime.startTime();
-        robot.init(hardwareMap);
-        robot.imu.readCalibrationData();
+        //robot.init(hardwareMap);
+        //robot.imu.readCalibrationData();
+
+        drive.init(hardwareMap);
+
+        control = new GamepadController(gamepad1, gamepad2);
 
         int opened = hardwareMap.appContext.getResources().getIdentifier("open", "raw", hardwareMap.appContext.getPackageName());
         int closed = hardwareMap.appContext.getResources().getIdentifier("closed", "raw", hardwareMap.appContext.getPackageName());
-
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        phoneCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
-        phoneCam.openCameraDevice();
-        phoneCam.setPipeline(new OpenCvTrackerApiPipeline());
-        phoneCam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT, OpenCvInternalCamera.BufferMethod.DOUBLE);
-
-        for (OpenCvInternalCamera.FrameTimingRange r : phoneCam.getFrameTimingRangesSupportedByHardware())
-        {
-            if(r.max == 30 && r.min == 30)
-            {
-                phoneCam.setHardwareFrameTimingRange(r);
-                break;
-            }
-        }
     }
 
     @Override
     public void start() {
         runtime.reset();
-        FtcDashboard.getInstance().startCameraStream((CameraStreamSource) phoneCam, 0);
     }
 
     @Override
     public void loop() {
-        //runtime.reset();
+        runtime.reset();
 
-        double FL, BL, FR, BR;
+        double[] powers = control.getDrivePowers();
 
-        double drive = -Math.pow(Math.abs(gamepad1.left_stick_y), 1.4) * Math.signum(gamepad1.left_stick_y);
-        double turn = Math.pow(Math.abs(gamepad1.left_stick_x), 1.4) * Math.signum(gamepad1.left_stick_x);
+        drive.setMotorPowers(powers);
 
-        double strafe = Math.pow(Math.abs(gamepad1.right_stick_x), 1.4) * Math.signum(gamepad1.right_stick_x);
+        /*
+        Todo: add remaining subsystem
+         */
+        //robot.gripper.setPower(-gamepad2.left_stick_y * 0.25);
 
-        FL = drive + turn + strafe;
-        BL = drive + turn - strafe;
-        FR = drive - turn - strafe;
-        BR = drive - turn + strafe;
-
-        double maxf = Math.max(Math.abs(FL), Math.abs(FR));
-        double maxb = Math.max(Math.abs(BL), Math.abs(BR));
-        double max = Math.max(maxf, maxb);
-        if (max > 1)
-        {
-            FL /= max;
-            BL /= max;
-            FR /= max;
-            BR /= max;
-        }
-
-        robot.backLeft.setPower(BL);
-        robot.backRight.setPower(BR);
-        robot.frontLeft.setPower(FL);
-        robot.frontRight.setPower(FR);
-
-        robot.gripper.setPower(-gamepad2.left_stick_y * 0.25);
-
+        /*
         if(gamepad2.a) {
             rotate(IMU_CONSTANTS.angle);
         }
@@ -119,6 +92,7 @@ public class VegaOpMode extends OpMode
         if(gamepad2.x) {
             moveToTop(DIST_CONSTANTS.power, DIST_CONSTANTS.dist);
         }
+        */
 
         /*if(gamepad2.right_trigger > 0) {
             liftTarget -= Math.round(gamepad2.right_trigger * 7);
@@ -155,9 +129,11 @@ public class VegaOpMode extends OpMode
             robot.lift.setPower(0);
         }*/
 
+        /*
         robot.lift.setPower((gamepad2.right_trigger - gamepad2.left_trigger) * 0.8);
 
         robot.latch.setPower(0.3 * (gamepad1.right_trigger - gamepad1.left_trigger));
+         */
 
         /*if(gamepad2.a && !aChange) {
             aChange = true;
@@ -178,13 +154,13 @@ public class VegaOpMode extends OpMode
         }*/
 
         packet.put("Time: ", runtime.milliseconds());
-        packet.put("IMU_CONSTANTS Calib", robot.imu.getCalibrationStatus().toString());
-        packet.put("IMU_CONSTANTS Calib", robot.imu.getCalibrationStatus().toString());
-        packet.put("Distance(cm): ", robot.distance.getDistance(DistanceUnit.CM));
-        packet.put("Top Distance(cm): ", robot.topdistance.getDistance(DistanceUnit.CM));
-        packet.put("Angle: ", getOrientation());
-        telemetry.addData("Left R,G,B,A: ", "%d %d %d %d", robot.colLeft.red(), robot.colLeft.green(), robot.colLeft.blue(), robot.colLeft.alpha());
-        telemetry.addData("Right R,G,B,A: ", "%d, %d, %d, %d", robot.colRight.red(), robot.colRight.green(), robot.colRight.blue(), robot.colRight.alpha());
+        //packet.put("IMU_CONSTANTS Calib", robot.imu.getCalibrationStatus().toString());
+        //packet.put("IMU_CONSTANTS Calib", robot.imu.getCalibrationStatus().toString());
+        //packet.put("Distance(cm): ", robot.distance.getDistance(DistanceUnit.CM));
+        //packet.put("Top Distance(cm): ", robot.topdistance.getDistance(DistanceUnit.CM));
+        //packet.put("Angle: ", getOrientation());
+        //telemetry.addData("Left R,G,B,A: ", "%d %d %d %d", robot.colLeft.red(), robot.colLeft.green(), robot.colLeft.blue(), robot.colLeft.alpha());
+        //telemetry.addData("Right R,G,B,A: ", "%d, %d, %d, %d", robot.colRight.red(), robot.colRight.green(), robot.colRight.blue(), robot.colRight.alpha());
         dashboard.sendTelemetryPacket(packet);
     }
 
@@ -192,6 +168,7 @@ public class VegaOpMode extends OpMode
     public void stop() {
     }
 
+    /*
     private void resetAngle() {
         lastAngles = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
@@ -323,4 +300,5 @@ public class VegaOpMode extends OpMode
         robot.backRight.setPower(0);
         robot.backLeft.setPower(0);
     }
+    */
 }

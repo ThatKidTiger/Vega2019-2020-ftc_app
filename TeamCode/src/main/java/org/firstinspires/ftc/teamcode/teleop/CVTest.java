@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.teleop;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.ftccommon.SoundPlayer;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -18,6 +19,7 @@ import org.openftc.easyopencv.OpenCvTrackerApiPipeline;
 
 import java.util.Random;
 
+@Disabled
 @TeleOp(name="CVTest", group="VegaBot")
 public class CVTest extends OpMode {
 	// Declare OpMode members.
@@ -25,13 +27,13 @@ public class CVTest extends OpMode {
 	VegaHardware robot = new VegaHardware();
 
 	//cv fields
-	OpenCvInternalCamera phoneCam;
+	private OpenCvInternalCamera phoneCam;
 
-	FtcDashboard dashboard = FtcDashboard.getInstance();
-	TelemetryPacket packet = new TelemetryPacket();
+	private FtcDashboard dashboard = FtcDashboard.getInstance();
+	private TelemetryPacket packet = new TelemetryPacket();
 
-	Random rand;
-	int warioSoundID;
+	private Random rand;
+	private int warioSoundID;
 
 	@Override
 	public void init() {

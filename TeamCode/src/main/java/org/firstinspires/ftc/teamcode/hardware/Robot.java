@@ -23,11 +23,15 @@ public class Robot {
     public DistanceSensor topdistance; //hub 3 port 0
 
     /* local OpMode members. */
-    HardwareMap hwMap =  null;
+    private HardwareMap hwMap =  null;
 
     /* Constructor */
     public Robot() {}
 
+    /*
+    Todo: check if initializing the hardware map is necessary, or if object references
+    Todo: can be individually fetched by each subsystem.
+     */
     /* Initialize standard Hardware interfaces */
     public void init(HardwareMap ahwMap) {
         // Save reference to Hardware map
