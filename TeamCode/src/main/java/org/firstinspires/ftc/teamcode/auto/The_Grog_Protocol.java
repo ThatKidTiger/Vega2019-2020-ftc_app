@@ -71,7 +71,7 @@ public class The_Grog_Protocol extends LinearOpMode {
 		runtime.reset();
 		runtime.startTime();
 
-		drive.forward(0.3);
+		drive.strafe(0.3);
 		sleep(1000);
 		drive.stop();
 	}
