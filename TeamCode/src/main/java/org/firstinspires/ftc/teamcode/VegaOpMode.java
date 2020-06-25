@@ -7,23 +7,9 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.stormbots.MiniPID;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.stream.CameraStreamSource;
-import org.firstinspires.ftc.teamcode.hardware.BotConstants.DIST_CONSTANTS;
-import org.firstinspires.ftc.teamcode.hardware.BotConstants.IMU_CONSTANTS;
-import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.GamepadController;
 import org.firstinspires.ftc.teamcode.subsystems.MecanumDrive;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
-import org.openftc.easyopencv.OpenCvInternalCamera;
-import org.openftc.easyopencv.OpenCvTrackerApiPipeline;
-
-import static android.os.SystemClock.sleep;
 
 @TeleOp(name="VegaOpMode", group="VegaBot")
 public class VegaOpMode extends OpMode
@@ -34,6 +20,7 @@ public class VegaOpMode extends OpMode
     Todo: Integrate all subsystems into the robot class
      */
     //Robot robot = new Robot();
+	private GamepadController controllers;
     private MecanumDrive drive = new MecanumDrive();
 
     Orientation lastAngles = new Orientation();
@@ -50,7 +37,6 @@ public class VegaOpMode extends OpMode
     private TelemetryPacket packet = new TelemetryPacket();
 
     MiniPID liftPID = new MiniPID(0.002, 0, 0.0);
-    private GamepadController control;
 
     @Override
     public void init() {
@@ -60,7 +46,7 @@ public class VegaOpMode extends OpMode
 
         drive.init(hardwareMap);
 
-        control = new GamepadController(gamepad1, gamepad2);
+        controllers = new GamepadController(gamepad1, gamepad2);
 
         int opened = hardwareMap.appContext.getResources().getIdentifier("open", "raw", hardwareMap.appContext.getPackageName());
         int closed = hardwareMap.appContext.getResources().getIdentifier("closed", "raw", hardwareMap.appContext.getPackageName());
@@ -75,7 +61,7 @@ public class VegaOpMode extends OpMode
     public void loop() {
         runtime.reset();
 
-        double[] powers = control.getDrivePowers();
+        double[] powers = controllers.getDrivePowers();
 
         drive.setMotorPowers(powers);
 
