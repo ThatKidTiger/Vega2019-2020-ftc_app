@@ -8,12 +8,19 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
-public class IMU {
+import java.util.HashMap;
+import java.util.Map;
+
+public class IMU extends Subsystem {
+	private static final String TAG = "MecanumDriveAuto";
 	private BNO055IMU imu;
 
 	private String imuName = "imu";
 	private Orientation lastAngles;
 	private double relativeAngle, globalAngle;
+
+	//map to update telemetry stats to
+	private HashMap<String, Object> updates = new HashMap<>();
 
 	public IMU() {
 
@@ -32,7 +39,8 @@ public class IMU {
 
 		imu.initialize(parameters);
 
-		lastAngles = new Orientation();
+		resetAngularDistance();
+		resetOrientation();
 	}
 
 	public void resetAngularDistance() {
@@ -53,8 +61,6 @@ public class IMU {
 		double deltaAngle = angles.firstAngle - globalAngle;
 
 		deltaAngle = limitAxes(deltaAngle);
-
-		lastAngles = angles;
 
 		return deltaAngle;
 	}
@@ -83,5 +89,12 @@ public class IMU {
 		else if (orientation > 180)
 			orientation -= 360;
 		return orientation;
+	}
+
+	@Override
+	public Map<String, Object> update() {
+		updates.put("Orientation", getOrientation());
+		updates.put("Angular Distance", getAngularDistance());
+		return updates;
 	}
 }

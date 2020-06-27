@@ -1,0 +1,12 @@
+DcMotor  backLeft; // hub 3 port 0
+DcMotor  backRight; // hub 3 port 1
+DcMotor  frontLeft; // hub 3 port 3
+DcMotor  frontRight; //hub 3 port 2
+DcMotor latch; //hub 2 port 0
+DcMotor lift; //hub 2 port 1
+DcMotor gripper; //hub 2 port 2
+BNO055IMU imu;
+ColorSensor colLeft; //hub 2 port 0
+ColorSensor colRight; //hub 2 port 2
+DistanceSensor distance; //hub 2 port 1
+DistanceSensor topdistance; //hub 3 port 0

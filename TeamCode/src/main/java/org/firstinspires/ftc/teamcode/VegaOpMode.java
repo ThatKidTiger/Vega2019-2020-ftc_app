@@ -11,6 +11,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.subsystems.GamepadController;
 import org.firstinspires.ftc.teamcode.subsystems.MecanumDrive;
 
+import java.util.Map;
+
 @TeleOp(name="VegaOpMode", group="VegaBot")
 public class VegaOpMode extends OpMode
 {
@@ -18,6 +20,8 @@ public class VegaOpMode extends OpMode
     private ElapsedTime runtime = new ElapsedTime();
     /*
     Todo: Integrate all subsystems into the robot class
+    Todo: Run all systems as state machines, with update commands as transition states
+    Todo: Put subsystems in an array and update them using a for loop
      */
     //Robot robot = new Robot();
 	private GamepadController controllers;
@@ -64,6 +68,9 @@ public class VegaOpMode extends OpMode
         double[] powers = controllers.getDrivePowers();
 
         drive.setMotorPowers(powers);
+        Map<String, Object> telemetry = drive.update();
+        packet.putAll(telemetry);
+        dashboard.sendTelemetryPacket(packet);
 
         /*
         Todo: add remaining subsystem

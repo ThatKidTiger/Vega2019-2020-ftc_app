@@ -32,22 +32,17 @@ package org.firstinspires.ftc.teamcode.auto;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.stormbots.MiniPID;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.teamcode.VegaHardware;
+import org.firstinspires.ftc.teamcode.hardware.BotConstants.IMU_CONSTANTS;
 import org.firstinspires.ftc.teamcode.subsystems.MecanumDrive;
-import org.firstinspires.ftc.teamcode.subsystems.MecanumDriveAuto;
 
 @Autonomous(name="The Grog Protocol", group="queenYash")
 public class The_Grog_Protocol extends LinearOpMode {
 
 	/* Declare OpMode members. */
 	//VegaHardware robot   = new VegaHardware();
+	MecanumDrive drive = new MecanumDrive();
 
 	private ElapsedTime runtime = new ElapsedTime(0);
 
@@ -63,7 +58,6 @@ public class The_Grog_Protocol extends LinearOpMode {
 		 */
 		//robot.init(hardwareMap);
 
-		MecanumDriveAuto drive = new MecanumDriveAuto();
 		drive.init(hardwareMap);
 
 		while (!isStarted()) {}
@@ -71,8 +65,6 @@ public class The_Grog_Protocol extends LinearOpMode {
 		runtime.reset();
 		runtime.startTime();
 
-		drive.strafe(0.3);
-		sleep(1000);
-		drive.stop();
+		drive.rotateByAngle(IMU_CONSTANTS.angle);
 	}
 }
