@@ -10,6 +10,7 @@ import com.stormbots.MiniPID;
 
 import org.firstinspires.ftc.teamcode.subsystems.IMU;
 import org.firstinspires.ftc.teamcode.subsystems.Latch;
+import org.firstinspires.ftc.teamcode.subsystems.LiftIntake;
 import org.firstinspires.ftc.teamcode.subsystems.MecanumDrive;
 import org.firstinspires.ftc.teamcode.subsystems.Subsystem;
 
@@ -36,14 +37,12 @@ public class Robot {
     private IMU imu = new IMU();
     private MecanumDrive drive = new MecanumDrive();
     private Latch latch = new Latch();
-
+    private LiftIntake liftIntake = new LiftIntake();
 
     FtcDashboard dashboard = FtcDashboard.getInstance();
     TelemetryPacket packet = new TelemetryPacket();
 
     /* Remaining subsystems to be implemented
-    public DcMotor lift; //hub 2 port 1
-    public DcMotor gripper; //hub 2 port 2
     public ColorSensor colLeft; //hub 2 port 0
     public ColorSensor colRight; //hub 2 port 2
     public DistanceSensor distance; //hub 2 port 1
@@ -54,6 +53,8 @@ public class Robot {
     public Robot() {
         subsystems.add(drive);
         subsystems.add(imu);
+        subsystems.add(latch);
+        subsystems.add(liftIntake);
     }
 
     public void update() {
@@ -71,6 +72,7 @@ public class Robot {
         imu.init(hwMap);
         drive.init(hwMap);
         latch.init(hwMap);
+        liftIntake.init(hwMap);
         runtime.startTime();
     }
 
@@ -156,6 +158,22 @@ public class Robot {
             latch.setPower(-.8);
         }
         latch.setPower(0);
+    }
+
+    public void grab() {
+        runtime.reset();
+        while (runtime.milliseconds() < 500){
+            liftIntake.setGripperPower(-0.2);
+        }
+        liftIntake.setGripperPower(0);
+    }
+
+    public void release() {
+        runtime.reset();
+        while (runtime.milliseconds() < 500){
+            liftIntake.setGripperPower(0.2);
+        }
+        liftIntake.setGripperPower(0);
     }
     //endregion
 }

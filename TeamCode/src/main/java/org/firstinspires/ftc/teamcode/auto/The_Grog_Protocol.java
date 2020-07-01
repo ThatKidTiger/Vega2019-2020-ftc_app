@@ -52,7 +52,7 @@ public class The_Grog_Protocol extends LinearOpMode {
 		runtime.startTime();
 
 		//robot.rotateByAngle(IMU_CONSTANTS.angle);
-		robot.latchUp();
-		robot.latchDown();
+		robot.grab();
+		robot.release();
 	}
 }
