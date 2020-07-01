@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import android.util.Log;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -41,6 +43,7 @@ public class IMU extends Subsystem {
 
 		resetAngularDistance();
 		resetOrientation();
+		Log.d(TAG, "Initialization Complete");
 	}
 
 	public void resetAngularDistance() {
@@ -62,6 +65,7 @@ public class IMU extends Subsystem {
 
 		deltaAngle = limitAxes(deltaAngle);
 
+		updates.put("Orientation", deltaAngle);
 		return deltaAngle;
 	}
 
@@ -80,6 +84,7 @@ public class IMU extends Subsystem {
 
 		lastAngles = angles;
 
+		updates.put("Angular Distance", relativeAngle);
 		return relativeAngle;
 	}
 
@@ -93,8 +98,6 @@ public class IMU extends Subsystem {
 
 	@Override
 	public Map<String, Object> update() {
-		updates.put("Orientation", getOrientation());
-		updates.put("Angular Distance", getAngularDistance());
 		return updates;
 	}
 }

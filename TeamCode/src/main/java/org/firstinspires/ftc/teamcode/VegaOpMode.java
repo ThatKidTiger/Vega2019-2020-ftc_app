@@ -18,11 +18,7 @@ public class VegaOpMode extends OpMode
 {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    /*
-    Todo: Integrate all subsystems into the robot class
-    Todo: Run all systems as state machines, with update commands as transition states
-    Todo: Put subsystems in an array and update them using a for loop
-     */
+
     //Robot robot = new Robot();
 	private GamepadController controllers;
     private MecanumDrive drive = new MecanumDrive();
