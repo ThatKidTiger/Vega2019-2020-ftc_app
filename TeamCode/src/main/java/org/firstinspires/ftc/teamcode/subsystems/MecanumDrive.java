@@ -12,13 +12,8 @@ import java.util.Map;
 /*
 Todo: Document
 Todo: Read mecanum kinematic analysis
-Todo: add the update command functionality for telemetry
-Todo: Migrate master update() function (the one that sends the TelemetryPacket) to the Robot class
-Todo: Initialize imu in the robot class and pass it to MecanumDrive during initialization
 Todo: Find out why the motor powers need to be reversed
-Todo: Replace telemetry packets with the update command
 Todo: Implement rotateToOrientation command
-Todo: pass the field canvas to this class in the constructor and have each individual move command update
  */
 
 public class MecanumDrive extends Subsystem {

@@ -33,38 +33,26 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.teamcode.hardware.BotConstants.IMU_CONSTANTS;
-import org.firstinspires.ftc.teamcode.subsystems.MecanumDrive;
+import org.firstinspires.ftc.teamcode.hardware.Robot;
 
 @Autonomous(name="The Grog Protocol", group="queenYash")
 public class The_Grog_Protocol extends LinearOpMode {
 
-	/* Declare OpMode members. */
-	//VegaHardware robot   = new VegaHardware();
-	MecanumDrive drive = new MecanumDrive();
+	Robot robot = new Robot();
 
 	private ElapsedTime runtime = new ElapsedTime(0);
 
-	//region intrinsic orientation variables
-	private Orientation lastAngles = new Orientation();
-	private double relativeAngle, globalAngle, initialAngle;
-	//endregion
-
 	@Override
 	public void runOpMode() {
-		/* Initialize the drive system variables.
-		 * The init() method of the hardware class does all the work here
-		 */
-		//robot.init(hardwareMap);
-
-		drive.init(hardwareMap);
+		robot.init(hardwareMap);
 
 		while (!isStarted()) {}
 
 		runtime.reset();
 		runtime.startTime();
 
-		drive.rotateByAngle(IMU_CONSTANTS.angle);
+		//robot.rotateByAngle(IMU_CONSTANTS.angle);
+		robot.latchUp();
+		robot.latchDown();
 	}
 }

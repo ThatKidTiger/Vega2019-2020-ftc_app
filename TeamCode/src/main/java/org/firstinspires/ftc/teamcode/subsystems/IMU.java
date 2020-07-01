@@ -24,6 +24,11 @@ public class IMU extends Subsystem {
 	//map to update telemetry stats to
 	private HashMap<String, Object> updates = new HashMap<>();
 
+	@Override
+	public Map<String, Object> update() {
+		return updates;
+	}
+
 	public IMU() {
 
 	}
@@ -94,10 +99,5 @@ public class IMU extends Subsystem {
 		else if (orientation > 180)
 			orientation -= 360;
 		return orientation;
-	}
-
-	@Override
-	public Map<String, Object> update() {
-		return updates;
 	}
 }

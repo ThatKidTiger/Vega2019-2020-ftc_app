@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.stormbots.MiniPID;
 
 import org.firstinspires.ftc.teamcode.subsystems.IMU;
+import org.firstinspires.ftc.teamcode.subsystems.Latch;
 import org.firstinspires.ftc.teamcode.subsystems.MecanumDrive;
 import org.firstinspires.ftc.teamcode.subsystems.Subsystem;
 
@@ -24,22 +25,23 @@ import static org.firstinspires.ftc.teamcode.hardware.BotConstants.IMU_CONSTANTS
 /*
 Todo: Integrate all subsystems into the robot class
 Todo: Run all systems as state machines, with update commands as transition states
-Todo: check if initializing the hardware map is necessary, or if object references
-Todo: can be individually fetched by each subsystem.
 Todo: pass the dashboard object reference to robot, and then retrieve the various subsystem updates
  */
 
 public class Robot {
     public static final String TAG = "Robot";
+    ElapsedTime runtime = new ElapsedTime();
+
     ArrayList<Subsystem> subsystems = new ArrayList();
-    public IMU imu = new IMU();
-    public MecanumDrive drive = new MecanumDrive();
+    private IMU imu = new IMU();
+    private MecanumDrive drive = new MecanumDrive();
+    private Latch latch = new Latch();
+
 
     FtcDashboard dashboard = FtcDashboard.getInstance();
     TelemetryPacket packet = new TelemetryPacket();
 
     /* Remaining subsystems to be implemented
-    public DcMotor latch; //hub 2 port 0
     public DcMotor lift; //hub 2 port 1
     public DcMotor gripper; //hub 2 port 2
     public ColorSensor colLeft; //hub 2 port 0
@@ -68,6 +70,8 @@ public class Robot {
     public void init(HardwareMap hwMap) {
         imu.init(hwMap);
         drive.init(hwMap);
+        latch.init(hwMap);
+        runtime.startTime();
     }
 
     //region Auton methods
@@ -136,6 +140,22 @@ public class Robot {
     public void stop() {
         double[] powers = {0, 0, 0, 0};
         drive.setMotorPowers(powers);
+    }
+
+    public void latchDown(){
+        runtime.reset();
+        while (runtime.milliseconds() < 400){
+            latch.setPower(.8);
+        }
+        latch.setPower(0);
+    }
+
+    public void latchUp(){
+        runtime.reset();
+        while (runtime.milliseconds() < 400){
+            latch.setPower(-.8);
+        }
+        latch.setPower(0);
     }
     //endregion
 }
