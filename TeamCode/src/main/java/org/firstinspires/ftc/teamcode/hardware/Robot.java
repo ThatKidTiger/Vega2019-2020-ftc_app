@@ -4,10 +4,13 @@ import android.util.Log;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.stormbots.MiniPID;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.subsystems.IMU;
 import org.firstinspires.ftc.teamcode.subsystems.Latch;
 import org.firstinspires.ftc.teamcode.subsystems.LiftIntake;
@@ -19,6 +22,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static android.os.SystemClock.sleep;
+import static org.firstinspires.ftc.teamcode.hardware.BotConstants.DIST_CONSTANTS.DIST_MIN;
+import static org.firstinspires.ftc.teamcode.hardware.BotConstants.DIST_CONSTANTS.DIST_PID;
+import static org.firstinspires.ftc.teamcode.hardware.BotConstants.DIST_CONSTANTS.power;
 import static org.firstinspires.ftc.teamcode.hardware.BotConstants.IMU_CONSTANTS.ROT_MAX;
 import static org.firstinspires.ftc.teamcode.hardware.BotConstants.IMU_CONSTANTS.ROT_MIN;
 import static org.firstinspires.ftc.teamcode.hardware.BotConstants.IMU_CONSTANTS.ROT_PID;
@@ -38,16 +44,13 @@ public class Robot {
     private MecanumDrive drive = new MecanumDrive();
     private Latch latch = new Latch();
     private LiftIntake liftIntake = new LiftIntake();
+    public ColorSensor colLeft;
+    public ColorSensor colRight;
+    public DistanceSensor distance;
+    public DistanceSensor topDistance;
 
     FtcDashboard dashboard = FtcDashboard.getInstance();
     TelemetryPacket packet = new TelemetryPacket();
-
-    /* Remaining subsystems to be implemented
-    public ColorSensor colLeft; //hub 2 port 0
-    public ColorSensor colRight; //hub 2 port 2
-    public DistanceSensor distance; //hub 2 port 1
-    public DistanceSensor topdistance; //hub 3 port 0
-     */
 
     /* Constructor */
     public Robot() {
@@ -74,6 +77,10 @@ public class Robot {
         latch.init(hwMap);
         liftIntake.init(hwMap);
         runtime.startTime();
+        colLeft = hwMap.get(ColorSensor.class, "colLeft");
+        colRight = hwMap.get(ColorSensor.class, "colRight");
+        distance = hwMap.get(DistanceSensor.class, "distance");
+        topDistance = hwMap.get(DistanceSensor.class, "topDistance");
     }
 
     //region Auton methods
@@ -112,7 +119,7 @@ public class Robot {
         double angle = imu.getAngularDistance();
 
         //rotates until the imu returns that the robot is within a margin of error
-        while(Math.abs(degrees - angle) > 0.1 && Math.abs(degrees - lastAngle) > 0.1) {
+        while(Math.abs(degrees - angle) > 0.1 || Math.abs(degrees - lastAngle) > 0.1) {
             packet.put("Reference", degrees);
             update();
             lastAngle = angle;
@@ -174,6 +181,85 @@ public class Robot {
             liftIntake.setGripperPower(0.2);
         }
         liftIntake.setGripperPower(0);
+    }
+
+    public void moveToTopDistance(double dist) {
+        //Accurate once it moves within 120 centimeters of the object it is approaching
+        double leftPower, rightPower, temppower;
+
+        //reset reference angle and PID controllers
+        runtime.reset();
+        MiniPID PD = new MiniPID(DIST_PID.p, DIST_PID.i, DIST_PID.d);
+
+        while(topDistance.getDistance(DistanceUnit.CM) > 120){
+            drive.setMotorPowers(new double[] {1, 1, 1, 1});
+        }
+
+        double lastDistance = 0;
+        //continues to move until the distance sensor returns it is within a margin of error
+        while(Math.abs(dist - topDistance.getDistance(DistanceUnit.CM)) > 0.1 || Math.abs(dist - lastDistance) > 0.1 || runtime.seconds() > 4) {
+            double current = topDistance.getDistance(DistanceUnit.CM);
+            temppower = PD.getOutput(current, dist);
+
+            if(runtime.seconds() < 1) {
+                temppower *= power * runtime.seconds();
+            }
+
+            if(Math.abs(temppower) < DIST_MIN) {
+                temppower *= (DIST_MIN/Math.abs(temppower));
+            }
+
+            if (Math.abs(temppower) > power) {
+                temppower *= (power/Math.abs(temppower));
+            }
+
+            leftPower = -temppower;
+            rightPower = -temppower;
+
+            drive.setMotorPowers(new double[] {leftPower, leftPower, rightPower, rightPower});
+            lastDistance = current;
+        }
+        stop();
+    }
+
+    //Todo: are left and right powers necessary, or can negative temppower just be used
+    public void moveToDistance(double dist) {
+        //Accurate once it moves within 120 centimeters of the object it is approaching
+        double leftPower, rightPower, temppower;
+
+        //reset reference angle and PID controllers
+        runtime.reset();
+        MiniPID PD = new MiniPID(DIST_PID.p, DIST_PID.i, DIST_PID.d);
+
+        while(distance.getDistance(DistanceUnit.CM) > 120){
+            drive.setMotorPowers(new double[] {1, 1, 1, 1});
+        }
+
+        double lastDistance = 0;
+        //continues to move until the distance sensor returns it is within a margin of error
+        while(Math.abs(dist - distance.getDistance(DistanceUnit.CM)) > 0.1 || Math.abs(dist - lastDistance) > 0.1 || runtime.seconds() > 4) {
+            double current = distance.getDistance(DistanceUnit.CM);
+            temppower = PD.getOutput(current, dist);
+
+            if(runtime.seconds() < 1) {
+                temppower *= power * runtime.seconds();
+            }
+
+            if(Math.abs(temppower) < DIST_MIN) {
+                temppower *= (DIST_MIN/Math.abs(temppower));
+            }
+
+            if (Math.abs(temppower) > power) {
+                temppower *= (power/Math.abs(temppower));
+            }
+
+            leftPower = -temppower;
+            rightPower = -temppower;
+
+            drive.setMotorPowers(new double[] {leftPower, leftPower, rightPower, rightPower});
+            lastDistance = current;
+        }
+        stop();
     }
     //endregion
 }

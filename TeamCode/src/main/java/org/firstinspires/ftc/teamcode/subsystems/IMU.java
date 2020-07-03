@@ -93,6 +93,8 @@ public class IMU extends Subsystem {
 		return relativeAngle;
 	}
 
+	//implement getAbsolute if needed
+
 	private double limitAxes(double orientation) {
 		if (orientation < -180)
 			orientation += 360;
