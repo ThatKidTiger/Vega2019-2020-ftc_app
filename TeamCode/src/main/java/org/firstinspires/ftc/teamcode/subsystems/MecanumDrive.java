@@ -60,7 +60,7 @@ public class MecanumDrive extends Subsystem {
 
 	public void setMotorPowers(double[] powers) {
 		for(int i = 0; i < motors.length; i++) {
-			motors[i].setPower(powers[i]);
+			motors[i].setPower(-powers[i]);
 		}
 
 		updates.put("FL", powers[0]);
